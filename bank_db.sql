@@ -31,7 +31,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `tbl_account` (
   `account_no` int(9) NOT NULL,
   `username` char(25) NOT NULL,
-  `password` char(25) NOT NULL
+  `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -39,7 +39,7 @@ CREATE TABLE `tbl_account` (
 --
 
 INSERT INTO `tbl_account` (`account_no`, `username`, `password`) VALUES
-(338509634, 'customer1', 'Password1');
+(338509634, 'customer1', '$2y$10$pkvn6vvA8BgA4jbqhaUsSO/64/sr9Iqu9JJvQ5sXjYAwVNocK3WlW');
 
 -- --------------------------------------------------------
 
@@ -91,7 +91,7 @@ CREATE TABLE `tbl_admin` (
   `full_name` char(25) NOT NULL,
   `mobile` char(14) NOT NULL,
   `email` varchar(50) NOT NULL,
-  `password` char(25) NOT NULL
+  `password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
@@ -99,7 +99,7 @@ CREATE TABLE `tbl_admin` (
 --
 
 INSERT INTO `tbl_admin` (`admin_id`, `full_name`, `mobile`, `email`, `password`) VALUES
-(1000502004, 'Admin1', '9959959951', 'adminemail@gmail.com', 'Password1');
+(1000502004, 'Admin1', '9959959951', 'adminemail@gmail.com', '$2y$10$pkvn6vvA8BgA4jbqhaUsSO/64/sr9Iqu9JJvQ5sXjYAwVNocK3WlW');
 
 -- --------------------------------------------------------
 

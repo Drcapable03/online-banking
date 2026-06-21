@@ -1,3 +1,20 @@
+<?php
+require_once __DIR__ . '/../../includes/config.php';
+include('connect.php');
+session_start();
+// if login session set then update logout_time record in tbl_login_history
+if(isset($_SESSION["s_login"]) && isset($_SESSION["s_account_no"]))
+{
+  $logout_time = date("Y-m-d H:i:s");
+  $query_for_update_logout = "UPDATE tbl_login_history SET logout_time = '$logout_time' WHERE token_id = (select max(token_id) from tbl_login_history)";
+  $result_for_update_logout = mysqli_query($con, $query_for_update_logout) or die('SQL Error :: '.mysqli_error($con));
+}
+session_unset();
+session_destroy();
+session_start();
+
+$home_url = app_url('site/dist/index.php');
+?>
 <script type="text/javascript">
   function wrongAuth()
   {
@@ -9,29 +26,10 @@
   }
   function rightAuth()
   {
-    location.replace("http://localhost/online-banking/site/dist/index.php");
+    location.replace("<?php echo $home_url; ?>");
   }
 
 </script>
-<?php
-include('connect.php');
-  session_start();
-  // if login session set then update logout_time record in tbl_login_history
-  if(isset($_SESSION["s_login"]) && isset($_SESSION["s_account_no"]))
-  {
-    $logout_time = date("Y-m-d H:i:s");
-    $query_for_update_logout = "UPDATE tbl_login_history SET logout_time = '$logout_time' WHERE token_id = (select max(token_id) from tbl_login_history)";
-    $result_for_update_logout = mysqli_query($con, $query_for_update_logout) or die('SQL Error :: '.mysqli_error($con));
-
-
-  }
-  session_unset();
-  session_destroy();
-
-  
-  session_start();
-?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -65,7 +63,7 @@ include('connect.php');
 
   <body class="bg-primary bg-pattern">
     <div class="home-btn d-none d-sm-block">
-            <a href="https://localhost/online-banking/admin/dist/auth-login.php"><i class="mdi mdi-home-variant h2 text-white"></i></a>
+            <a href="<?php echo app_url('admin/dist/auth-login.php'); ?>"><i class="mdi mdi-home-variant h2 text-white"></i></a>
         </div>
     <div class="account-pages my-5 pt-5">
       <div class="container">
@@ -193,35 +191,38 @@ include('connect.php');
 <?php
   if(isset($_REQUEST['btn_submit']))
   { 
-    $username = $_REQUEST["txt_username"];
+    $username = trim($_REQUEST["txt_username"]);
     $password = $_REQUEST["txt_password"];
-    $query = "SELECT username, password FROM tbl_account WHERE username = '$username' AND  password='$password' ";
-    $result1 = mysqli_query($con,$query);
-    if(mysqli_num_rows($result1) > 0 )
+    $stmt = $con->prepare('SELECT account_no, password FROM tbl_account WHERE username = ?');
+    $stmt->bind_param('s', $username);
+    $stmt->execute();
+    $result1 = $stmt->get_result();
+    if($row = $result1->fetch_assoc())
     {
-        // get account number from userame
-        $query_account_no = "SELECT account_no FROM tbl_account WHERE username='$username'";
-        $result_account_no = mysqli_query($con, $query_account_no);
-        $account_no = mysqli_fetch_array($result_account_no)[0];
-        // echo $account_no;
-        $_SESSION["s_account_no"] = $account_no;
-        $_SESSION["s_login"] = date("Y-m-d H:i:s");
-        $Login_time = $_SESSION["s_login"];
-        // insert record of login time
-        $query_for_login_history = "INSERT INTO tbl_login_history (account_no, login_time) VALUES ($account_no,'$Login_time')";
-        $result_for_login_history = mysqli_query($con, $query_for_login_history) or die('SQL Error :: '.mysqli_error($con));
-        echo '<script type="text/JavaScript">  
-              rightAuth();
-             </script>' 
-              ;
+        if (verify_password($row['password'], $password))
+        {
+            $account_no = (int) $row['account_no'];
+            if (!password_get_info($row['password'])['algo']) {
+                upgrade_account_password($con, $account_no, $password);
+            }
+            $_SESSION["s_account_no"] = $account_no;
+            $_SESSION["s_login"] = date("Y-m-d H:i:s");
+            $Login_time = $_SESSION["s_login"];
+            $history_stmt = $con->prepare('INSERT INTO tbl_login_history (account_no, login_time) VALUES (?, ?)');
+            $history_stmt->bind_param('is', $account_no, $Login_time);
+            $history_stmt->execute();
+            $history_stmt->close();
+            echo '<script type="text/JavaScript">rightAuth();</script>';
+        }
+        else
+        {
+            echo '<script type="text/JavaScript">wrongAuth();</script>';
+        }
     }
     else
     {
-        echo '<script type="text/JavaScript">  
-              wrongAuth();
-             </script>' 
-              ;
+        echo '<script type="text/JavaScript">wrongAuth();</script>';
     }
-  
+    $stmt->close();
 }
 ?>

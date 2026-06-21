@@ -1,3 +1,13 @@
+<?php
+require_once __DIR__ . '/../../includes/config.php';
+include('connect.php');
+session_start();
+session_unset();
+session_destroy();
+session_start();
+
+$home_url = app_url('admin/dist/index.php');
+?>
 <script type="text/javascript">
   function wrongAuth()
   {
@@ -9,20 +19,10 @@
   }
   function rightAuth()
   {
-    location.replace("http://localhost/online-banking/admin/dist/index.php");
+    location.replace("<?php echo $home_url; ?>");
   }
 
 </script>
-<?php
-
-  include('connect.php');
-  session_start();
-  session_unset();
-  session_destroy();
-
-  
-  session_start();
-?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -54,7 +54,7 @@
 
   <body class="bg-primary bg-pattern">
     <div class="home-btn d-none d-sm-block">
-            <a href="https://localhost/online-banking/site/dist/auth_login.php"><i class="mdi mdi-home-variant h2 text-white"></i></a>
+            <a href="<?php echo app_url('site/dist/auth_login.php'); ?>"><i class="mdi mdi-home-variant h2 text-white"></i></a>
         </div>
     <div class="account-pages my-5 pt-5">
       <div class="container">
@@ -185,27 +185,33 @@
 
   if(isset($_REQUEST['btn_submit']))
   {
-    $Admin_id = $_REQUEST["txt_adminid"];
+    $Admin_id = (int) $_REQUEST["txt_adminid"];
     $Password = $_REQUEST["txt_password"];
-    $query = "SELECT admin_id, password FROM tbl_admin WHERE admin_id = '$Admin_id' AND  password='$Password' ";
-    $result1 = mysqli_query($con,$query);
-    $row = mysqli_fetch_assoc($result1);
+    $stmt = $con->prepare('SELECT admin_id, password FROM tbl_admin WHERE admin_id = ?');
+    $stmt->bind_param('i', $Admin_id);
+    $stmt->execute();
+    $result1 = $stmt->get_result();
 
-    if(mysqli_num_rows($result1) > 0 )
+    if($row = $result1->fetch_assoc())
     {
-      $_SESSION['s_admin_id'] = $Admin_id;
-      header("location:https://localhost/online-banking/admin/dist/index.php");
-      echo '<script type="text/JavaScript">  
-              rightAuth();
-             </script>' 
-              ;
+      if (verify_password($row['password'], $Password))
+      {
+        if (!password_get_info($row['password'])['algo']) {
+          upgrade_admin_password($con, $Admin_id, $Password);
+        }
+        $_SESSION['s_admin_id'] = $Admin_id;
+        header("location:" . app_url('admin/dist/index.php'));
+        echo '<script type="text/JavaScript">rightAuth();</script>';
+      }
+      else
+      {
+        echo '<script type="text/JavaScript">wrongAuth();</script>';
+      }
     }
     else
     {
-      echo '<script type="text/JavaScript">  
-              wrongAuth();
-             </script>' 
-              ;
+      echo '<script type="text/JavaScript">wrongAuth();</script>';
     }
+    $stmt->close();
   }
 ?>

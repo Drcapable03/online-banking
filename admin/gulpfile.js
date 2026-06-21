@@ -70,6 +70,10 @@ const paths = {
       dir:    './src/partials',
       files:  './src/partials/**/*'
     },
+    php:    {
+      dir:    './src/php',
+      files:  './src/php/**/*.php'
+    },
     scss:   {
       dir:    './src/assets/scss',
       files:  './src/assets/scss/**/*',
@@ -167,7 +171,14 @@ gulp.task('copy:all', function() {
       '!' + paths.src.scss.dir, '!' + paths.src.scss.files,
       '!' + paths.src.js.dir, '!' + paths.src.js.files, '!' + paths.src.js.main, 
       '!' + paths.src.html.files,
+      '!' + paths.src.php.dir, '!' + paths.src.php.files,
     ])
+    .pipe(gulp.dest(paths.dist.base.dir));
+});
+
+gulp.task('copy:php', function() {
+  return gulp
+    .src(paths.src.php.files)
     .pipe(gulp.dest(paths.dist.base.dir));
 });
 
@@ -202,7 +213,7 @@ gulp.task('html', function() {
 });
 
 // gulp.task('build', gulp.series(gulp.parallel('clean:tmp', 'clean:packageLock', 'clean:dist', 'copy:all', 'copy:libs'), 'scss', 'html'));
-gulp.task('build', gulp.series(gulp.parallel('clean:packageLock', 'clean:dist', 'copy:all', 'copy:libs'), 'scss', 'html'));
+gulp.task('build', gulp.series(gulp.parallel('clean:packageLock', 'clean:dist', 'copy:all', 'copy:libs', 'copy:php'), 'scss', 'html'));
 
 // gulp.task('default', gulp.series(gulp.parallel('fileinclude', 'scss'), gulp.parallel('browsersync', 'watch')));
-gulp.task('default', gulp.series(gulp.parallel('clean:packageLock', 'clean:dist', 'copy:all', 'copy:libs', 'fileinclude', 'scss', 'js', 'jsPages', 'html'), gulp.parallel('browsersync', 'watch')));
+gulp.task('default', gulp.series(gulp.parallel('clean:packageLock', 'clean:dist', 'copy:all', 'copy:libs', 'copy:php', 'fileinclude', 'scss', 'js', 'jsPages', 'html'), gulp.parallel('browsersync', 'watch')));

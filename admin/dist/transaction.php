@@ -73,7 +73,7 @@
 
         
     } else {
-        header("location:http://localhost/online-banking/admin/dist/auth-login.php");
+        header("location:" . app_url('admin/dist/auth-login.php'));
     }
 
 ?>

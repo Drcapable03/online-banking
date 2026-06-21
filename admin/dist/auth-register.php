@@ -1,9 +1,10 @@
+<?php require_once __DIR__ . '/../../includes/config.php'; ?>
 <script type="text/javascript">
   function displayAdminId(admin_id)
   {
     alertify.alert("Info", "Your Admin id is "+ admin_id+"", function() {
       alertify.success("Ok");
-      window.location = 'http://localhost/online-banking/admin/dist/auth-login.php';
+      window.location = '<?php echo app_url('admin/dist/auth-login.php'); ?>';
 
     });
     return false;
@@ -197,9 +198,11 @@
     $email = $_REQUEST['txt_email'];
     $password = $_REQUEST['txt_password'];
 
-    $query = "INSERT INTO tbl_admin (full_name, mobile, email, password) VALUES ('$full_name', '$mobile', '$email', '$password')";
-
-    $result = mysqli_query($con, $query);
+    $password = hash_password($password);
+    $stmt = $con->prepare('INSERT INTO tbl_admin (full_name, mobile, email, password) VALUES (?, ?, ?, ?)');
+    $stmt->bind_param('ssss', $full_name, $mobile, $email, $password);
+    $result = $stmt->execute();
+    $stmt->close();
 
      
      

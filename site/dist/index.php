@@ -74,7 +74,7 @@
 
         
     } else {
-        header("location:http://localhost/online-banking/site/dist/auth_login.php");
+        header("location:" . app_url('site/dist/auth_login.php'));
     }
 
 ?>
@@ -317,7 +317,7 @@
                                 <a class="dropdown-item" href="#"><i class="mdi mdi-account-settings font-size-16 align-middle mr-1"></i> Settings</a>
                                 <a class="dropdown-item" href="#"><i class="mdi mdi-lock font-size-16 align-middle mr-1"></i> Lock screen</a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="http://localhost/online-banking/site/dist/auth_login.php"><i class="mdi mdi-logout font-size-16 align-middle mr-1"></i>Logout</a>
+                                <a class="dropdown-item" href="<?php echo app_url('site/dist/auth_login.php'); ?>"><i class="mdi mdi-logout font-size-16 align-middle mr-1"></i>Logout</a>
                             </div>
                         </div>
                     </div>

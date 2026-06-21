@@ -1,60 +1,55 @@
-<script type="text/javascript">
-  function alertifySuccess()
-  {
-    alertify.alert("Info", "Transaction Success", function() {
-    //   window.location = '<?php echo app_url(''''); ?>';
-      alertify.success("Ok");
-
-    });
-    return false;
-  }
-
-  function sweetAlertSuccess()
-  {
-    Swal.fire({
-      position: "center",
-      icon: "success",
-      title: "Thanks for your feedback\nWe Appiciated that.",
-      showConfirmButton: !1,
-      timer: 1600
-    }); 
-  }
-
-//   t("#sa-position").click(function() {
-//         Swal.fire({
-//           position: "top-end",
-//           icon: "success",
-//           title: "Your work has been saved",
-//           showConfirmButton: !1,
-//           timer: 1500
-//         });
-//       }
-</script>
 
 <?php
     include('connect.php');
     session_start();
     // if Session is getting account_no then user can access index.php else require login
-    if(isset($_SESSION["s_account_no"]) && isset($_SESSION['s_login']))
+    if(isset($_SESSION["s_admin_id"]))
     {
-        $Account_no = $_SESSION["s_account_no"];
-        // For Getting Customer Details
-        $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
-        $result_customer = mysqli_query($con, $query_customer);
-        $row_customer = mysqli_fetch_array($result_customer);
+        $Admin_id = $_SESSION["s_admin_id"];
+        // For Getting Admin Details
+        $query_admin = "SELECT * FROM tbl_admin WHERE admin_id=$Admin_id";
+        $result_admin = mysqli_query($con, $query_admin);
+        $row_admin_detail = mysqli_fetch_array($result_admin);
 
-        // For Getting Different Types of values in page
-        $query_for_transactions = "SELECT * FROM tbl_transaction where account_no = $Account_no ORDER BY trans_date DESC ";
+        // For Getting All Customers Details
+        // $query_for_customer_details = "SELECT * FROM tbl_customer";
+        // $customers_details = mysqli_query($con,$query_for_customer_details);
+        // $row_customer_detail = mysqli_fetch_array($customers_details);
+
+        // $no_of_customer
+        $query_for_no_of_customer = "SELECT * FROM tbl_customer";
+        $result_no_of_customer = mysqli_query($con,$query_for_no_of_customer);
+        $no_of_customer = mysqli_num_rows($result_no_of_customer); 
+
+        // $debit_count
+        $query_for_debit_count = "SELECT * FROM tbl_transaction where trans_type='DEBIT'";
+        $result_debit_count = mysqli_query($con,$query_for_debit_count);
+        $debit_count = mysqli_num_rows($result_debit_count);
+
+        // $credit_count
+        $query_for_credit_count = "SELECT * FROM tbl_transaction where trans_type='CREDIT'";
+        $result_credit_count = mysqli_query($con,$query_for_credit_count);
+        $credit_count = mysqli_num_rows($result_credit_count); 
+
+        // $total_bank_balance
+        $query_for_total_bank_balance = "SELECT SUM(balance) as bank_balance FROM tbl_balance"; // SUM of all account balance
+        $result_total_bank_balance = mysqli_query($con,$query_for_total_bank_balance);
+        $array_total_bank_balance = mysqli_fetch_assoc($result_total_bank_balance); # $no_of_transaction
+        $total_bank_balance = $array_total_bank_balance['bank_balance'];
+
+        $query_for_credit_total = "SELECT SUM(amount) as credit_sum FROM tbl_transaction where trans_type='CREDIT' ";
+        $query_credit_result = mysqli_query($con,$query_for_credit_total);
+        $total_credit = mysqli_fetch_assoc($query_credit_result);
+   
+        // TODO: Select All Customer and their Transaction from database and Print into Table
+        // For Getting All Customers Transaction Details
+        $query_for_transactions = "SELECT * FROM tbl_transaction ORDER BY trans_date DESC ";
         $transaction_result = mysqli_query($con,$query_for_transactions);
         $no_of_transaction = mysqli_num_rows($transaction_result); # $no_of_transaction
 
-        // For getting Acount Balance
-        $query_for_account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$Account_no";
-        $result_account_bal = mysqli_query($con, $query_for_account_bal);
-        $account_bal = mysqli_fetch_array($result_account_bal)[0];
 
         // For Sum of Credit Amount
-        $query_for_credit_total = "SELECT SUM(amount) as credit_sum FROM tbl_transaction where account_no = $Account_no and trans_type='CREDIT' ";
+        $query_for_credit_total = "SELECT SUM(amount) as credit_sum FROM tbl_transaction where trans_type='CREDIT' ";
         $query_credit_result = mysqli_query($con,$query_for_credit_total);
         $total_credit = mysqli_fetch_assoc($query_credit_result);
         if (!empty($total_credit['credit_sum'])) {
@@ -65,7 +60,7 @@
         }
         
         // For Sum of Debit Amount
-        $query_for_debit_total = "SELECT SUM(amount) as debit_sum FROM tbl_transaction where account_no = $Account_no and trans_type='DEBIT' ";
+        $query_for_debit_total = "SELECT SUM(amount) as debit_sum FROM tbl_transaction where trans_type='DEBIT' ";
         $query_debit_result = mysqli_query($con,$query_for_debit_total);
         $total_debit = mysqli_fetch_assoc($query_debit_result);
         if (!empty($total_debit['debit_sum'])) {
@@ -78,28 +73,26 @@
 
         
     } else {
-        header("location:" . app_url('site/dist/auth_login.php'));
+        header("location:" . app_url('admin/dist/auth-login.php'));
     }
 
 ?>
+
+
 
 <!doctype html>
 <html lang="en">
 
     <head>
         <meta charset="utf-8" />
-        <title>Feedback</title>
+        <title>Transactions</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
         <meta content="Themesdesign" name="author" />
         <!-- App favicon -->
         <link rel="shortcut icon" href="assets/images/favicon.ico">
 
-        <!-- Summernote css -->
-        <link href="assets/libs/summernote/summernote-bs4.css" rel="stylesheet" type="text/css" />
-
-        <!-- Sweet Alert-->
-        <link href="assets/libs/sweetalert2/sweetalert2.min.css" rel="stylesheet" type="text/css" />
+        
 
         <!-- Bootstrap Css -->
         <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
@@ -110,12 +103,11 @@
 
     </head>
 
-    <body data-topbar="dark" data-layout="horizontal">
+    <body data-sidebar="dark">
 
         <!-- Begin page -->
         <div id="layout-wrapper">
 
-            
             <header id="page-topbar">
                 <div class="navbar-header">
                     <div class="d-flex">
@@ -126,7 +118,7 @@
                                     <img src="assets/images/logo-sm-dark.png" alt="" height="22">
                                 </span>
                                 <span class="logo-lg">
-                                    <img src="assets/images/logo-dark.png" alt="" height="19">
+                                    <img src="assets/images/logo-dark.png" alt="" height="20">
                                 </span>
                             </a>
 
@@ -135,13 +127,13 @@
                                     <img src="assets/images/logo-sm-light.png" alt="" height="22">
                                 </span>
                                 <span class="logo-lg">
-                                    <img src="assets/images/logo-light.png" alt="" height="19">
+                                    <img src="assets/images/logo-light.png" alt="" height="20">
                                 </span>
                             </a>
                         </div>
 
-                        <button type="button" class="btn btn-sm mr-2 font-size-16 d-lg-none header-item waves-effect waves-light" data-toggle="collapse" data-target="#topnav-menu-content">
-                            <i class="fa fa-fw fa-bars"></i>
+                        <button type="button" class="btn btn-sm px-3 font-size-24 header-item waves-effect" id="vertical-menu-btn">
+                            <i class="mdi mdi-backburger"></i>
                         </button>
 
                         <!-- App Search-->
@@ -162,7 +154,7 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right p-0"
                                 aria-labelledby="page-header-search-dropdown">
-        
+                    
                                 <form class="p-3">
                                     <div class="form-group m-0">
                                         <div class="input-group">
@@ -177,12 +169,12 @@
                         </div>
 
                         <div class="dropdown d-inline-block">
-                            <button type="button" class="btn header-item waves-effect" id="page-header-user-dropdown"
+                            <button type="button" class="btn header-item waves-effect" id="page-header-flag-dropdown"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img class="" src="assets/images/flags/us.jpg"alt="Header Language" height="14">
+                                <img class="" src="assets/images/flags/us.jpg" alt="Header Language" height="14">
                             </button>
                             <div class="dropdown-menu dropdown-menu-right">
-        
+                    
                                 <!-- item-->
                                 <a href="javascript:void(0);" class="dropdown-item notify-item">
                                     <img src="assets/images/flags/spain.jpg" alt="user-image" class="mr-2" height="12"><span class="align-middle">Spanish</span>
@@ -309,7 +301,7 @@
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <img class="rounded-circle header-profile-user" src="assets/images/users/avatar-1.jpg"
                                     alt="Header Avatar">
-                                <span class="d-none d-sm-inline-block ml-1"><?php echo $row_customer['full_name'] ?></span>
+                                <span class="d-none d-sm-inline-block ml-1"><?php echo $row_admin_detail["full_name"]?></span>
                                 <i class="mdi mdi-chevron-down d-none d-sm-inline-block"></i>
                             </button>
                             <div class="dropdown-menu dropdown-menu-right">
@@ -319,83 +311,81 @@
                                 <a class="dropdown-item" href="#"><i class="mdi mdi-account-settings font-size-16 align-middle mr-1"></i> Settings</a>
                                 <a class="dropdown-item" href="#"><i class="mdi mdi-lock font-size-16 align-middle mr-1"></i> Lock screen</a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="<?php echo app_url('site/dist/auth_login.php'); ?>"><i class="mdi mdi-logout font-size-16 align-middle mr-1"></i> Logout</a>
+                                <a class="dropdown-item" href="auth-login.php"><i class="mdi mdi-logout font-size-16 align-middle mr-1"></i> Logout</a>
                             </div>
                         </div>
+            
                     </div>
                 </div>
             </header>
 
-             <div class="topnav">
-                <div class="container-fluid">
-                    <nav class="navbar navbar-light navbar-expand-lg topnav-menu">
+            <!-- ========== Left Sidebar Start ========== -->
+            <div class="vertical-menu">
 
-                        <div class="collapse navbar-collapse" id="topnav-menu-content">
-                            <ul class="navbar-nav">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="index.php">
-                                        <i class="mdi mdi-storefront mr-2"></i>Transactions
-                                    </a>
-                                </li>
+                <div data-simplebar class="h-100">
 
-                                <li class="nav-item">
-                                    <a class="nav-link" href="quick_transfer.php">
-                                        <i class="mdi mdi-bank-transfer mr-2"></i>Quick Transfer
-                                    </a>
-                                </li>
+                    <!--- Sidemenu -->
+                    <div id="sidebar-menu">
+                        <!-- Left Menu Start -->
+                        <ul class="metismenu list-unstyled" id="side-menu">
+                            <li class="menu-title">Menu</li>
 
-                                <li class="nav-item">
-                                    <a class="nav-link" href="inbox.php">
-                                        <i class="mdi mdi mdi-email-send-outline mr-2"></i>Request Money
-                                    </a>
-                                </li>
+                            <li>
+                                <a href="index.php" class="waves-effect">
+                                    <i class="mdi mdi-view-dashboard"></i>
+                                    <span>Home</span>
+                                </a>
+                            </li>
 
-                                <li class="nav-item">
-                                    <a class="nav-link" href="profile.php">
-                                        <i class="mdi mdi mdi mdi mdi-human-greeting  mr-2"></i>Profile
-                                    </a>
-                                </li>
+                            <li>
+                                <a href="transaction.php" class=" waves-effect">
+                                    <i class="mdi mdi-calendar-month"></i>
+                                    <span>Transactions</span>
+                                </a>
+                            </li>
 
-                                <!-- <li class="nav-item">
-                                    <a class="nav-link" href="cheque_book.php">
-                                        <i class="mdi mdi mdi mdi mdi-book-open mr-2"></i>Request Cheque Book
-                                    </a>
-                                </li> -->
+                            <li>
+                                <a href="login_history.php" class="waves-effect">
+                                    <i class="mdi mdi-account-group"></i>
+                                    <span>Login History</span>
+                                </a>
+                            </li>
 
-                                <li class="nav-item">
-                                    <a class="nav-link" href="feedback.php">
-                                        <i class="mdi mdi mdi mdi-heart-outline mr-2"></i>Feedback
-                                    </a>
-                                </li>
+                            <li>
+                                <a href="manage_balance.php" class="waves-effect">
+                                    <i class="mdi mdi-bank-transfer"></i>
+                                    <span>Manage Balance</span>
+                                </a>
+                            </li>
 
-                                <li class="nav-item">
-                                    <a class="nav-link" href="FAQs.php">
-                                        <i class="mdi mdi-book-open-variant mr-2"></i>FAQs
-                                    </a>
-                                </li>
+                            <li>
+                                <a href="view_requests.php" class="waves-effect">
+                                    <i class="mdi mdi-book-open"></i>
+                                    <span>View All Requests</span>
+                                </a>
+                            </li>
 
-                                
+                            <!-- <li>
+                                <a href="manage_feedback.php" class="waves-effect">
+                                    <i class="mdi mdi-heart-outline"></i>
+                                    <span>Cheque Book Requests</span>
+                                </a>
+                            </li> -->
 
-                                <!-- <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle arrow-none" href="#" id="topnav-advancedui" role="button"
-                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="mdi mdi-package-variant-closed mr-2"></i>Advanced UI <div class="arrow-down"></div>
-                                    </a>
-                                    <div class="dropdown-menu" aria-labelledby="topnav-advancedui">
-                                        <a href="advanced-alertify.html" class="dropdown-item">Alertify</a>
-                                        <a href="advanced-rating.html" class="dropdown-item">Rating</a>
-                                        <a href="advanced-nestable.html" class="dropdown-item">Nestable</a>
-                                        <a href="advanced-rangeslider.html" class="dropdown-item">Range Slider</a>
-                                        <a href="advanced-sweet-alert.html" class="dropdown-item">Sweet-Alert</a>
-                                        <a href="advanced-lightbox.html" class="dropdown-item">Lightbox</a>
-                                        <a href="advanced-maps.html" class="dropdown-item">Maps</a>
-                                    </div>
-                                </li> -->
-                            </ul>
-                        </div>
-                    </nav>
+                            <li>
+                                <a href="manage_feedback.php" class="waves-effect">
+                                    <i class="mdi mdi-heart-outline"></i>
+                                    <span>Feedback</span>
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </div>
+                    <!-- Sidebar -->
                 </div>
             </div>
+            <!-- Left Sidebar End -->
 
             <!-- ============================================================== -->
             <!-- Start right Content here -->
@@ -409,91 +399,199 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box d-flex align-items-center justify-content-between">
-                                    <h4 class="mb-0 font-size-18">Feedback</h4>
+                                    <h4 class="mb-0 font-size-18">Transactions</h4>
 
                                     <div class="page-title-right">
                                         <ol class="breadcrumb m-0">
-                                            <li class="breadcrumb-item"><a href="javascript: void(0);">Net Banking</a></li>
-                                            <li class="breadcrumb-item active">Feedback</li>
+                                            <li class="breadcrumb-item">Admin</li>
+                                            <li class="breadcrumb-item active">Transactions</li>
                                         </ol>
                                     </div>
+                                    
                                 </div>
                             </div>
                         </div>     
                         <!-- end page title -->
 
-                        <div class="row mb-4">
-                            <div class="col-xl-2">
-                                
-                            </div>
-
-                            <div class="col-xl-8">
-                                <div class="row">
-                                    <div class="col-md-7">
-                                        <div class="btn-toolbar" role="toolbar">
-                                            
-                                            
-                                        </div>
-                                    </div>
-                                    <div class="col-md-5">
-                                        <div class="btn-toolbar justify-content-md-end" role="toolbar">
-                                            <div class="btn-group ml-md-2 mb-3">
-                                                
-                                            </div>
-            
-                                            <div class="btn-group ml-2 mb-3">
-                                                <button type="button" class="btn btn-primary waves-light waves-effect dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                                    More <i class="mdi mdi-dots-vertical ml-1"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="card mb-0">
-                                    <div class="card-body">
-                                        <form>
-                                            
-                                            
-                                            <div class="mt-3">
-                                                <label>Your Feedback</label>
-                                                <textarea name="txt_feedback" id="textarea" class="form-control" maxlength="225" rows="5" placeholder="max 225 chars." required></textarea>
-                                            </div>
-
-                                            <div class="btn-toolbar justify-content-md-end" role="toolbar">
-                                            <div class="col-xl-3 col-md-4 col-sm-6">
-                                                <div class="p-4 text-center">
-                                                    <h5 class="font-size-15 mb-3">Heart Rating</h5>
-                                                    <input name="txt_heart_rate" type="hidden" class="rating" data-filled="mdi mdi-heart text-danger" data-empty="mdi mdi-heart-outline text-danger" required/>
-                                                </div>
-                                            </div>
-                                            </div>
-                                            
-                                            <div class="btn-toolbar justify-content-md-end" role="toolbar">
-                                                <div class="btn-toolbar form-group mb-0 mr-3">
-                                                    <div class="">
-
-                                                        <button name="btn_submit" class="btn btn-primary waves-effect waves-light"> <span>Send</span> <i class="fab fa-telegram-plane ml-1"></i> </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-    
-                                        </form>
-                                    </div>
-                                </div>
-                                <!-- end card -->
-
-                            </div>
-                            <div class="col-xl-2">
-                                
-                            </div>
-                        </div>
-                        <!-- end row -->
+                       
 
                     </div> <!-- container-fluid -->
                 </div>
                 <!-- End Page-content -->
-            </div>
+
+                         <div class="row">
+                            <div class="col-sm-6 col-xl-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="media">
+                                            <div class="media-body">
+                                                <h5 class="font-size-14">Number of Transactions<br></h5>
+                                            </div>
+                                            <div class="avatar-xs">
+                                                <span class="avatar-title rounded-circle bg-primary">
+                                                    <i class="dripicons-box"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <h4 class="m-0 align-self-center"><?php echo $no_of_transaction?></h4>
+            
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <div class="col-sm-6 col-xl-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="media">
+                                            <div class="media-body">
+                                                <h5 class="font-size-14">Total Credit Amount<br></h5>
+                                            </div>
+                                            <div class="avatar-xs">
+                                                <span class="avatar-title rounded-circle bg-primary">
+                                                    <i class="dripicons-briefcase"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <h4 class="m-0 align-self-center">&#x20b9; <?php echo $credit_sum ?></h4>
+            
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <div class="col-sm-6 col-xl-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="media">
+                                            <div class="media-body">
+                                                <h5 class="font-size-14">Total Debit Amount<br></h5>
+                                            </div>
+                                            <div class="avatar-xs">
+                                                <span class="avatar-title rounded-circle bg-primary">
+                                                    <i class="dripicons-tags"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <h4 class="m-0 align-self-center">&#x20b9; <?php echo $debit_sum ?></h4>
+            
+                                    </div>
+                                </div>
+                            </div>
+            
+                            <div class="col-sm-6 col-xl-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="media">
+                                            <div class="media-body">
+                                                <h5 class="font-size-14">Total Bank Balance<br></h5>
+                                                </div>
+                                            <div class="avatar-xs">
+                                                <span class="avatar-title rounded-circle bg-primary">
+                                                    <i class="dripicons-cart"></i>
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <h4 class="m-0 align-self-center">&#x20b9; <?php echo $total_bank_balance ?></h4>
+            
+                                    </div>
+                                </div>
+            
+                            </div>
+                        </div>
+                        <div class="row"><br></div>
+
+                        <!-- end row -->
+                        
+
+
+
+                        
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h4 class="header-title mb-4">All Transaction</h4>
+            
+                                        <div class="table-responsive">
+                                            <table class="table table-centered table-nowrap mb-0">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col" style="width: 50px;">
+                                                            <div class="custom-control custom-checkbox">
+                                                                <input type="checkbox" class="custom-control-input"
+                                                                    id="customCheckall">
+                                                                <label class="custom-control-label" for="customCheckall"></label>
+                                                            </div>
+                                                        </th>
+                                                        <th scope="col" style="width: 60px;"><br></th>
+                                                        <th scope="col">Transaction ID &amp; Name</th>
+                                                        <th scope="col">Date</th>
+                                                        <th scope="col"><br></th>
+                                                        <th scope="col">Purpose</th>
+                                                        <th scope="col">Transaction Type<br></th>
+                                                        <th scope="col">Amount</th>
+                                                        <th scope="col">Balance<br></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+
+                                               
+                                                <?php
+                                                    // For transactions in Home Page(index page)
+                                                    $query_for_transactions = "SELECT * FROM tbl_transaction ORDER BY trans_date DESC";
+                                                    $transaction_result = mysqli_query($con,$query_for_transactions);
+                                                    $no_of_transaction = mysqli_num_rows($transaction_result);
+
+                                                    while($row = mysqli_fetch_array($transaction_result)) {
+                                                        $to_account_no = $row['account_no'];
+                                                        $query_for_ben_name = "SELECT full_name FROM tbl_customer WHERE account_no=$to_account_no";
+                                                        $result_ben_name = mysqli_query($con, $query_for_ben_name);
+                                                        $ben_name = mysqli_fetch_array($result_ben_name)[0];
+                                                   if($row["trans_type"] == "DEBIT") {
+                                                        $trans_light = '<i class="mdi mdi-checkbox-blank-circle text-danger mr-1"></i>';
+                                                   }
+                                                   else {
+                                                        $trans_light = '<i class="mdi mdi-checkbox-blank-circle text-success mr-1"></i>';
+
+                                                   }
+                                                       echo 
+                                                       '<tr>
+                                                            <td>
+                                                                <div class="custom-control custom-checkbox">
+                                                                    <input type="checkbox" class="custom-control-input"
+                                                                        id="customCheck1">
+                                                                    <label class="custom-control-label" for="customCheck1"></label>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="avatar-xs">
+                                                                    <span class="avatar-title rounded-circle bg-soft-primary text-primary">
+                                                                        '.$ben_name[0].'
+                                                                    </span>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <p class="mb-1 font-size-12"># '.$row["trans_id"].'</p>
+                                                                <h5 class="font-size-15 mb-0">'.$ben_name.' </h5>
+                                                            </td>
+                                                            <td>'.$row["trans_date"].'</td>
+                                                            <td><br></td>
+                                                            <td>'.$row["purpose"].'<br></td>
+                                                            
+                                                            <td>'.$trans_light.'
+                                                            '.$row["trans_type"].'</td>
+                                                            <td>&#x20b9; '.$row["amount"].'</td>
+                                                            <td>&#x20b9; '.$row["account_bal"].'<br></td>
+                                                    </tr>';
+                                                   } 
+                                                ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- end row -->
             <!-- end main content-->
 
         </div>
@@ -820,55 +918,13 @@
         <script src="assets/libs/metismenu/metisMenu.min.js"></script>
         <script src="assets/libs/simplebar/simplebar.min.js"></script>
         <script src="assets/libs/node-waves/waves.min.js"></script>
-        <script src="assets/libs/bootstrap-maxlength/bootstrap-maxlength.min.js"></script>
 
-        <!-- Summernote js -->
-        <script src="assets/libs/summernote/summernote-bs4.min.js"></script>
-
-        <!-- Bootstrap rating js -->
-        <script src="assets/libs/bootstrap-rating/bootstrap-rating.min.js"></script>
-
-        <script src="assets/js/pages/rating-init.js"></script>
-        <!-- form advanced init -->
-        <script src="assets/js/pages/form-advanced.init.js"></script>
-
-        <!-- Sweet Alerts js -->
-        <script src="assets/libs/sweetalert2/sweetalert2.min.js"></script>
-
-        <!-- Sweet alert init js-->
-        <script src="assets/js/pages/sweet-alerts.init.js"></script>
-        
-
-        <!-- email summernote init -->
-        <script src="assets/js/pages/email-summernote.init.js"></script>
+        <!-- plugin js -->
+        <script src="assets/libs/moment/min/moment.min.js"></script>
+        <script src="assets/libs/jquery-ui-dist/jquery-ui.min.js"></script>
+        <script src="assets/libs/fullcalendar/fullcalendar.min.js"></script>
 
         <script src="assets/js/app.js"></script>
 
     </body>
 </html>
-<?php
-    if(isset($_REQUEST['btn_submit']))
-    {
-        $text_feedback = $_REQUEST['txt_feedback'];
-        $heart_rating = $_REQUEST['txt_heart_rate'];
-        
-        $current_time = date("Y-m-d H:i:s");
-
-        if ($heart_rating == NULL)
-        {
-        $query_for_insert_feeback = "INSERT INTO tbl_feedback (account_no, feedback, time) VALUES ($Account_no, '$text_feedback', '$current_time')";
-
-        }
-        else
-        {
-            $query_for_insert_feeback = "INSERT INTO tbl_feedback (account_no, feedback, hearts, time) VALUES ($Account_no, '$text_feedback', $heart_rating, '$current_time')";
-        }
-        $result =  mysqli_query($con, $query_for_insert_feeback) or die('SQL Error :: '.mysqli_error());
-         echo '<script type="text/JavaScript">  
-              sweetAlertSuccess();
-             </script>' 
-              ;
-
-
-    }
-?>

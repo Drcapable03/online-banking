@@ -1,0 +1,41 @@
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${DB_NAME:-bank_db}
+      MYSQL_USER: ${DB_USER:-bank_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-bank_pass}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./bank_db.sql:/docker-entrypoint-initdb.d/01-bank_db.sql:ro
+      - ./docker/mysql/init/02-password-upgrade.sql:/docker-entrypoint-initdb.d/02-password-upgrade.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    environment:
+      DB_HOST: db
+      DB_USER: ${DB_USER:-bank_user}
+      DB_PASSWORD: ${DB_PASSWORD:-bank_pass}
+      DB_NAME: ${DB_NAME:-bank_db}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080/online-banking}
+    volumes:
+      - .:/var/www/html/online-banking
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:

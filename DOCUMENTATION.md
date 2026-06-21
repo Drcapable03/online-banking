@@ -7,18 +7,42 @@ This is an online banking system with two main components:
 
 ## System Requirements
 
-### Required Software
-1. XAMPP (Version 7.4 or higher)
-   - Apache
-   - MySQL
-   - PHP
+### Docker (recommended)
+1. Docker Desktop
+2. Node.js 18+ (optional, for frontend asset builds only)
+3. Web Browser (Chrome/Firefox recommended)
+
+### Legacy (XAMPP)
+1. XAMPP (Version 7.4 or higher) — Apache, MySQL, PHP
 2. Node.js (Version 12 or higher)
 3. npm (Node Package Manager)
 4. Web Browser (Chrome/Firefox recommended)
 
 ## Installation Steps
 
-### 1. Setup XAMPP
+### Docker setup (recommended)
+
+1. Copy environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Start services:
+   ```bash
+   docker compose up -d --build
+   ```
+
+3. Open the apps:
+   - Customer: `http://localhost:8080/online-banking/site/dist/auth_login.php`
+   - Admin: `http://localhost:8080/online-banking/admin/dist/auth-login.php`
+
+4. Test login:
+   - Customer: `customer1` / `Password1`
+   - Admin: `1000502004` / `Password1`
+
+The database (`bank_db`) is created automatically from `bank_db.sql` on first run.
+
+### 1. Setup XAMPP (legacy)
 1. Download and install XAMPP from [Apache Friends](https://www.apachefriends.org/)
 2. Start XAMPP Control Panel
 3. Start Apache and MySQL services
@@ -41,8 +65,8 @@ This is an online banking system with two main components:
 
 ### 3. Database Setup
 1. Open browser and navigate to: `http://localhost/phpmyadmin`
-2. Create a new database named `online_banking`
-3. Import the database schema (SQL file should be provided separately)
+2. Create a new database named `bank_db`
+3. Import `bank_db.sql` from the project root
 
 ### 4. Install Dependencies
 
@@ -61,11 +85,8 @@ gulp
 ```
 
 ### 5. Configure Database Connection
-1. Open `admin/dist/connect.php` and `site/dist/connect.php`
-2. Update database credentials if needed:
-```php
-$con = mysqli_connect("localhost", "root", "", "online_banking");
-```
+Database settings are centralized in `includes/config.php` and read from environment variables.
+Copy `.env.example` to `.env` and adjust values, or set `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, and `APP_BASE_URL` in your environment.
 
 ## Accessing the Application
 

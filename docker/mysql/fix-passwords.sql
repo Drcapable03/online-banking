@@ -1,0 +1,2 @@
+UPDATE tbl_account SET password='$2y$10$pkvn6vvA8BgA4jbqhaUsSO/64/sr9Iqu9JJvQ5sXjYAwVNocK3WlW' WHERE username='customer1';
+UPDATE tbl_admin SET password='$2y$10$pkvn6vvA8BgA4jbqhaUsSO/64/sr9Iqu9JJvQ5sXjYAwVNocK3WlW' WHERE admin_id=1000502004;
