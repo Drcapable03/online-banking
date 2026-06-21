@@ -132,15 +132,18 @@ CREATE TABLE `tbl_customer` (
   `gender` char(10) NOT NULL,
   `birth_date` date NOT NULL,
   `mobile` char(15) NOT NULL,
-  `email` char(100) NOT NULL
+  `email` char(100) NOT NULL,
+  `profile_photo` varchar(255) DEFAULT NULL,
+  `ssn` varchar(20) DEFAULT NULL,
+  `signature` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `tbl_customer`
 --
 
-INSERT INTO `tbl_customer` (`account_no`, `full_name`, `gender`, `birth_date`, `mobile`, `email`) VALUES
-(338509634, 'First Customer', 'M', '2000-02-09', '9959959955', 'customeremail@gmail.com');
+INSERT INTO `tbl_customer` (`account_no`, `full_name`, `gender`, `birth_date`, `mobile`, `email`, `profile_photo`, `ssn`, `signature`) VALUES
+(338509634, 'First Customer', 'M', '2000-02-09', '9959959955', 'customeremail@gmail.com', NULL, '123456789', NULL);
 
 -- --------------------------------------------------------
 

@@ -2,6 +2,7 @@
     include('connect.php');
     session_start();
     require_once __DIR__ . '/../../includes/customer_guard.php';
+    require_once __DIR__ . '/../../includes/uploads.php';
     $Account_no = $_SESSION["s_account_no"];
 
     $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
@@ -16,9 +17,13 @@
     $result_address = mysqli_query($con, $query_address);
     $row_address = mysqli_fetch_array($result_address);
 
-    $query_for_get_password = "SELECT password FROM tbl_account WHERE account_no = $Account_no";
-    $result_password = mysqli_query($con, $query_for_get_password);
-    $acc_password = mysqli_fetch_array($result_password)[0];
+    $profile_photo = !empty($row_customer['profile_photo'])
+        ? $row_customer['profile_photo']
+        : 'assets/images/users/avatar-1.jpg';
+    $signature_image = !empty($row_customer['signature'])
+        ? $row_customer['signature']
+        : null;
+    $masked_ssn = mask_ssn($row_customer['ssn'] ?? null);
 ?>
 <script type="text/javascript">
   function sweetAlertSuccess()
@@ -70,7 +75,7 @@
                     <div class="d-flex">
                         <!-- LOGO -->
                         <div class="navbar-brand-box">
-                            <a href="index.html" class="logo logo-dark">
+                            <a href="index.php" class="logo logo-dark">
                                 <span class="logo-sm">
                                     <img src="assets/images/logo-sm-dark.png" alt="" height="22">
                                 </span>
@@ -79,7 +84,7 @@
                                 </span>
                             </a>
 
-                            <a href="index.html" class="logo logo-light">
+                            <a href="index.php" class="logo logo-light">
                                 <span class="logo-sm">
                                     <img src="assets/images/logo-sm-light.png" alt="" height="22">
                                 </span>
@@ -402,10 +407,37 @@
                                         <h4 class="header-title">Update Your Profile</h4>
                                       
                                         
-                                        <form class="needs-validation" novalidate>
+                                        <form class="needs-validation" method="post" enctype="multipart/form-data" novalidate>
                                         <div class="row col-md-6 mb-3 mt-3">
                                             <h5>Account Number : <?php echo $Account_no; ?></h5>
                                         </div>
+
+                                            <div class="row mb-4">
+                                                <div class="col-md-4 text-center">
+                                                    <label class="d-block mb-2">Profile Photo</label>
+                                                    <img src="<?php echo htmlspecialchars($profile_photo); ?>" alt="Profile photo" class="rounded-circle mb-3" width="120" height="120" style="object-fit: cover;">
+                                                    <input type="file" name="profile_photo" class="form-control-file" accept="image/jpeg,image/png,image/gif,image/webp">
+                                                    <small class="text-muted">JPG, PNG, GIF or WEBP. Max 2 MB.</small>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label>Social Security Number</label>
+                                                    <input type="text" class="form-control bg-light" value="<?php echo htmlspecialchars($masked_ssn); ?>" readonly>
+                                                    <small class="text-muted d-block mt-1">Only the last four digits are shown.</small>
+                                                    <label class="mt-3">Update SSN</label>
+                                                    <input type="password" name="txt_ssn" class="form-control" placeholder="Enter 9-digit SSN to update" autocomplete="off" inputmode="numeric">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="d-block">Signature</label>
+                                                    <?php if ($signature_image): ?>
+                                                        <img src="<?php echo htmlspecialchars($signature_image); ?>" alt="Signature" class="img-thumbnail mb-2" style="max-height: 80px;">
+                                                    <?php else: ?>
+                                                        <p class="text-muted mb-2">No signature on file.</p>
+                                                    <?php endif; ?>
+                                                    <input type="file" name="signature" class="form-control-file" accept="image/jpeg,image/png,image/gif,image/webp">
+                                                    <small class="text-muted">Upload a clear image of your signature. Max 2 MB.</small>
+                                                </div>
+                                            </div>
+
                                             <div class="row">
                                                 <div class="col-md-6 mb-3">
                                                 <label for="validationTooltip01">First name</label>
@@ -485,16 +517,15 @@
 
                                             
                                                 <div class="col-md-4 mb-3">
-                                                  <label>Password</label>
-                                                    <input type="password" name="txt_password" id="pass2" class="form-control" value="<?php echo $acc_password?>" required
-                                                            placeholder="Password"/>
+                                                  <label>New Password</label>
+                                                    <input type="password" name="txt_password" id="pass2" class="form-control"
+                                                            placeholder="Leave blank to keep current password"/>
                                                 </div>
                                                 <div class="col-md-4 mb-3">
-                                                  <label>Confirm Password</label>
-
-                                                    <input type="password" name="txt_repassword" class="form-control" value="<?php echo $acc_password?>" required
+                                                  <label>Confirm New Password</label>
+                                                    <input type="password" name="txt_repassword" class="form-control"
                                                             data-parsley-equalto="#pass2"
-                                                            placeholder="Re-Type Password"/>
+                                                            placeholder="Re-type new password"/>
                                                 </div>
                                             
                                                 
@@ -887,29 +918,70 @@
 <?php
     if(isset($_REQUEST['btn_update']))
     {
-        $first_name = $_REQUEST['txt_fname'];
-        $last_name = $_REQUEST['txt_lname'];
+        $first_name = trim($_REQUEST['txt_fname']);
+        $last_name = trim($_REQUEST['txt_lname']);
         $full_name = $first_name . " " . $last_name;
-        $mobile = $_REQUEST['txt_mobile'];
-        $email = $_REQUEST['txt_email'];
-        $address = $_REQUEST['txt_address'];
-        $city = $_REQUEST['txt_city'];
-        $state = $_REQUEST['txt_state'];
-        $zip = $_REQUEST['txt_zip'];
-        $password = $_REQUEST['txt_password'];
-        // Update tbl_customer
-        $query_for_update_tbl_customer = "UPDATE tbl_customer SET full_name='$full_name', mobile='$mobile', email='$email' WHERE account_no= $Account_no";
-        $result_tbl_customer = mysqli_query($con,$query_for_update_tbl_customer) or die('SQL Error :: '.mysqli_error($con));
-        // Update tbl_address
-        $query_for_update_tbl_address = "UPDATE tbl_address SET home_address= '$address', city='$city', state= '$state', pincode=$zip  WHERE account_no= $Account_no";
-        $result_tbl_address = mysqli_query($con,$query_for_update_tbl_address) or die('SQL Error :: '.mysqli_error($con));
-        // update_tbl_account
-        $query_for_update_tbl_account = "UPDATE tbl_account SET password='$password' WHERE account_no= $Account_no";
-        $result_tbl_account = mysqli_query($con,$query_for_update_tbl_account)  or die('SQL Error :: '.mysqli_error($con));
+        $mobile = trim($_REQUEST['txt_mobile']);
+        $email = trim($_REQUEST['txt_email']);
+        $address = trim($_REQUEST['txt_address']);
+        $city = trim($_REQUEST['txt_city']);
+        $state = trim($_REQUEST['txt_state']);
+        $zip = (int) $_REQUEST['txt_zip'];
+        $password = $_REQUEST['txt_password'] ?? '';
 
-        echo '<script type="text/JavaScript">  
-              sweetAlertSuccess();
-             </script>' 
-              ;
+        $photo_path = save_customer_upload($Account_no, 'profile', $_FILES['profile_photo'] ?? []);
+        $signature_path = save_customer_upload($Account_no, 'signature', $_FILES['signature'] ?? []);
+
+        if ($photo_path === false || $signature_path === false) {
+            echo '<script type="text/JavaScript">alert("Upload failed. Use JPG, PNG, GIF or WEBP under 2 MB.");</script>';
+        } else {
+            $ssn_update = null;
+            if (!empty($_REQUEST['txt_ssn'])) {
+                $ssn_update = normalize_ssn($_REQUEST['txt_ssn']);
+            }
+
+            $customer_sql = "UPDATE tbl_customer SET full_name=?, mobile=?, email=?";
+            $params = [$full_name, $mobile, $email];
+            $types = 'sss';
+
+            if ($photo_path) {
+                $customer_sql .= ", profile_photo=?";
+                $params[] = $photo_path;
+                $types .= 's';
+            }
+            if ($signature_path) {
+                $customer_sql .= ", signature=?";
+                $params[] = $signature_path;
+                $types .= 's';
+            }
+            if ($ssn_update) {
+                $customer_sql .= ", ssn=?";
+                $params[] = $ssn_update;
+                $types .= 's';
+            }
+            $customer_sql .= " WHERE account_no=?";
+            $params[] = $Account_no;
+            $types .= 'i';
+
+            $stmt = $con->prepare($customer_sql);
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $stmt->close();
+
+            $addr_stmt = $con->prepare('UPDATE tbl_address SET home_address=?, city=?, state=?, pincode=? WHERE account_no=?');
+            $addr_stmt->bind_param('sssii', $address, $city, $state, $zip, $Account_no);
+            $addr_stmt->execute();
+            $addr_stmt->close();
+
+            if (!empty($password)) {
+                $hash = hash_password($password);
+                $pass_stmt = $con->prepare('UPDATE tbl_account SET password=? WHERE account_no=?');
+                $pass_stmt->bind_param('si', $hash, $Account_no);
+                $pass_stmt->execute();
+                $pass_stmt->close();
+            }
+
+            echo '<script type="text/JavaScript">sweetAlertSuccess();</script>';
+        }
     }
 ?>

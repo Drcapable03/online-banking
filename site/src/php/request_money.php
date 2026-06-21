@@ -1,5 +1,15 @@
-<script type="text/javascript">
+<?php
+    include('connect.php');
+    session_start();
+    require_once __DIR__ . '/../../includes/customer_guard.php';
+    $Account_no = $_SESSION["s_account_no"];
 
+    $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
+    $result_customer = mysqli_query($con, $query_customer);
+    $row_customer = mysqli_fetch_array($result_customer);
+?>
+
+<script type="text/javascript">
   function sweetAlertSuccess()
   {
     Swal.fire({
@@ -8,14 +18,14 @@
       title: "Message Sent",
       showConfirmButton: !1,
       timer: 1500
-    }); 
+    });
   }
 
   function accountSame()
   {
     Swal.fire({
       title: "Can't Sent Request",
-      text: "username or password is incorrect !",
+      text: "You cannot send a request to your own account.",
       icon: "error"
     });
   }
@@ -38,24 +48,6 @@
     });
   }
 </script>
-
-
-<?php
-    include('connect.php');
-    session_start();
-    // if Session is getting account_no then user can access index.php else require login
-    if(isset($_SESSION["s_account_no"]) && isset($_SESSION['s_login']))
-    {
-        $Account_no = $_SESSION["s_account_no"];
-        // For Getting Customer Details
-        $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
-        $result_customer = mysqli_query($con, $query_customer);
-        $row_customer = mysqli_fetch_array($result_customer);
-    } else {
-        header("location:" . app_url('site/dist/auth_login.php'));
-    }
-
-?>
 
 <!doctype html>
 <html lang="en">
@@ -97,7 +89,7 @@
                     <div class="d-flex">
                         <!-- LOGO -->
                         <div class="navbar-brand-box">
-                            <a href="index.html" class="logo logo-dark">
+                            <a href="index.php" class="logo logo-dark">
                                 <span class="logo-sm">
                                     <img src="assets/images/logo-sm-dark.png" alt="" height="22">
                                 </span>
@@ -106,7 +98,7 @@
                                 </span>
                             </a>
 
-                            <a href="index.html" class="logo logo-light">
+                            <a href="index.php" class="logo logo-light">
                                 <span class="logo-sm">
                                     <img src="assets/images/logo-sm-light.png" alt="" height="22">
                                 </span>
@@ -896,9 +888,7 @@
         if ($to_account == $Account_no)
         {
             // echo "You can not send request to self";
-            echo '<script type="text/JavaScript">  
-              sameAccount();
-             </script>' 
+            echo '<script type="text/JavaScript">accountSame();</script>'
               ;
         }
         
