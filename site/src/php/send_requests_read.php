@@ -1,3 +1,25 @@
+<?php
+    include('connect.php');
+    require_once __DIR__ . '/../../includes/customer_guard.php';
+
+    $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
+    $result_customer = mysqli_query($con, $query_customer);
+    $row_customer = mysqli_fetch_array($result_customer);
+
+    if (!isset($_GET['request_id'])) {
+        header('location: send_requests.php');
+        exit;
+    }
+
+    $request_id = intval($_GET['request_id']);
+    $request_details = mysqli_query($con, "SELECT * FROM tbl_requests WHERE request_id=$request_id");
+    $row_request = mysqli_fetch_array($request_details);
+    $sender_account_no = $row_request['to_account'];
+
+    $query_for_sender_details = "SELECT * FROM tbl_customer WHERE account_no = $sender_account_no";
+    $result_sender_details = mysqli_query($con, $query_for_sender_details);
+    $row_sender = mysqli_fetch_array($result_sender_details);
+?>
 <script type="text/javascript">
   function sweetAlertSuccess()
   {
@@ -8,58 +30,8 @@
       showConfirmButton: !1,
       timer: 1500
     });
-
   }
-
-//   t("#sa-position").click(function() {
-//         Swal.fire({
-//           position: "top-end",
-//           icon: "success",
-//           title: "Your work has been saved",
-//           showConfirmButton: !1,
-//           timer: 1500
-//         });
-//       }
 </script>
-<?php
-    include('connect.php');
-    session_start();
-    // if Session is getting account_no then user can access index.php else require login
-    function sendMoneyFunc()
-    {
-         
-      header("Location: http://www.google.com/");
-   
-    }
-
-    
-    if(isset($_SESSION["s_account_no"]) && isset($_SESSION['s_login']))
-    {
-        $Account_no = $_SESSION["s_account_no"];
-        // For Getting Customer Details
-        $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
-        $result_customer = mysqli_query($con, $query_customer);
-        $row_customer = mysqli_fetch_array($result_customer);
-
-        /// get Request_id from url
-        if(isset($_GET['request_id']))
-        {
-            $request_id = intval($_GET['request_id']);
-            $request_details = mysqli_query($con,"SELECT * FROM tbl_requests WHERE request_id=$request_id");
-            $row_request = mysqli_fetch_array($request_details);
-            $sender_account_no = $row_request['to_account'];
-
-            $query_for_sender_details = "SELECT * FROM tbl_customer WHERE account_no = $sender_account_no";
-            $result_sender_details = mysqli_query($con,$query_for_sender_details);
-            $row_sender = mysqli_fetch_array($result_sender_details);
-        }
-        else {
-            header('location: inbox.php');
-        }
-    } else {
-        header("location:" . app_url('site/dist/auth_login.php'));
-    }
-?>
 <!doctype html>
 <html lang="en">
     <head>

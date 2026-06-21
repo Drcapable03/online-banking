@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../../includes/config.php';
 include('connect.php');
-session_start();
 // if login session set then update logout_time record in tbl_login_history
 if(isset($_SESSION["s_login"]) && isset($_SESSION["s_account_no"]))
 {
@@ -11,7 +10,7 @@ if(isset($_SESSION["s_login"]) && isset($_SESSION["s_account_no"]))
 }
 session_unset();
 session_destroy();
-session_start();
+start_secure_session();
 
 $home_url = app_url('site/dist/index.php');
 ?>
@@ -93,6 +92,7 @@ $home_url = app_url('site/dist/index.php');
                     Sign in to continue to DR BANK.
                   </h5>
                   <form class="form-horizontal" method="post">
+                    <?php echo csrf_field(); ?>
                     <div class="row">
                       <div class="col-md-12">
                         <div class="form-group mb-4">
@@ -191,6 +191,7 @@ $home_url = app_url('site/dist/index.php');
 <?php
   if(isset($_REQUEST['btn_submit']))
   { 
+    require_csrf();
     $username = trim($_REQUEST["txt_username"]);
     $password = $_REQUEST["txt_password"];
     $stmt = $con->prepare('SELECT account_no, password FROM tbl_account WHERE username = ?');
@@ -205,6 +206,8 @@ $home_url = app_url('site/dist/index.php');
             if (!password_get_info($row['password'])['algo']) {
                 upgrade_account_password($con, $account_no, $password);
             }
+            regenerate_session();
+            $_SESSION["_csrf_token"] = bin2hex(random_bytes(32));
             $_SESSION["s_account_no"] = $account_no;
             $_SESSION["s_login"] = date("Y-m-d H:i:s");
             $Login_time = $_SESSION["s_login"];

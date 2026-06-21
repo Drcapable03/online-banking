@@ -1,8 +1,6 @@
 <?php
     include('connect.php');
-    session_start();
     require_once __DIR__ . '/../../includes/customer_guard.php';
-    $Account_no = $_SESSION["s_account_no"];
 
     $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
     $result_customer = mysqli_query($con, $query_customer);
@@ -475,6 +473,7 @@
                                 <div class="card mb-0">
                                     <div class="card-body">
                                         <form class="custom-validation" action="#" method="post">
+                                            <?php echo csrf_field(); ?>
                                             <div class="form-group">
                                                 <label>Account Number</label>
                                                 <div>
@@ -874,16 +873,19 @@
 
     if(isset($_REQUEST['btn_send']))
     {
-        $Account_no = $_SESSION["s_account_no"];
-        $to_account = $_REQUEST['txt_to_account'];
-        $amount = $_REQUEST['txt_amount'];
-        $message = $_REQUEST['txt_message'];
+        require_csrf();
+        $to_account = (int) $_REQUEST['txt_to_account'];
+        $amount = (int) $_REQUEST['txt_amount'];
+        $message = trim($_REQUEST['txt_message']);
         $hasViewed = 0;
         $status = 'ignore';
         $Req_date = date("Y-m-d H:i:s");
 
-        $query_for_check_To_Account_no = mysqli_query($con,"SELECT account_no FROM  tbl_account WHERE account_no=$to_account");
-        $result_to_account = mysqli_num_rows($query_for_check_To_Account_no);
+        $check_stmt = $con->prepare('SELECT account_no FROM tbl_account WHERE account_no = ?');
+        $check_stmt->bind_param('i', $to_account);
+        $check_stmt->execute();
+        $result_to_account = $check_stmt->get_result()->num_rows;
+        $check_stmt->close();
 
         if ($to_account == $Account_no)
         {
@@ -909,14 +911,12 @@
         }
         else
         {
-            $query_for_insert_request = "INSERT INTO tbl_requests (account_no, to_account, amount, message, hasViewed, status, request_date) VALUES ($Account_no, $to_account, $amount, '$message'
-            , $hasViewed, '$status','$Req_date')";
-            $result = mysqli_query($con, $query_for_insert_request) or die('SQL Error :: '.mysqli_error());
+            $insert_stmt = $con->prepare('INSERT INTO tbl_requests (account_no, to_account, amount, message, hasViewed, status, request_date) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $insert_stmt->bind_param('iiisis', $Account_no, $to_account, $amount, $message, $hasViewed, $status, $Req_date);
+            $insert_stmt->execute();
+            $insert_stmt->close();
 
-            echo '<script type="text/JavaScript">  
-              sweetAlertSuccess();
-             </script>' 
-              ;
+            echo '<script type="text/JavaScript">sweetAlertSuccess();</script>';
         }
         
     }

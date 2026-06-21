@@ -1,8 +1,6 @@
 <?php
     include('connect.php');
-    session_start();
     require_once __DIR__ . '/../../includes/customer_guard.php';
-    $Account_no = $_SESSION["s_account_no"];
         // For Getting Customer Details
         $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
         $result_customer = mysqli_query($con, $query_customer);

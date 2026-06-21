@@ -1,5 +1,6 @@
 .env
 cookies.txt
+test-cookies.txt
 site/dist/assets/uploads/customers/*
 !site/dist/assets/uploads/customers/.gitkeep
 node_modules/

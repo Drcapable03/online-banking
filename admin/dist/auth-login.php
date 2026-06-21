@@ -1,10 +1,9 @@
 <?php
 require_once __DIR__ . '/../../includes/config.php';
 include('connect.php');
-session_start();
 session_unset();
 session_destroy();
-session_start();
+start_secure_session();
 
 $home_url = app_url('admin/dist/index.php');
 ?>
@@ -85,6 +84,7 @@ $home_url = app_url('admin/dist/index.php');
                     Sign in to continue to DR BANK.
                   </h5>
                   <form class="form-horizontal" method="post">
+                    <?php echo csrf_field(); ?>
                     <div class="row">
                       <div class="col-md-12">
                         <div class="form-group mb-4">
@@ -185,6 +185,7 @@ $home_url = app_url('admin/dist/index.php');
 
   if(isset($_REQUEST['btn_submit']))
   {
+    require_csrf();
     $Admin_id = (int) $_REQUEST["txt_adminid"];
     $Password = $_REQUEST["txt_password"];
     $stmt = $con->prepare('SELECT admin_id, password FROM tbl_admin WHERE admin_id = ?');
@@ -199,6 +200,7 @@ $home_url = app_url('admin/dist/index.php');
         if (!password_get_info($row['password'])['algo']) {
           upgrade_admin_password($con, $Admin_id, $Password);
         }
+        regenerate_session();
         $_SESSION['s_admin_id'] = $Admin_id;
         header("location:" . app_url('admin/dist/index.php'));
         echo '<script type="text/JavaScript">rightAuth();</script>';

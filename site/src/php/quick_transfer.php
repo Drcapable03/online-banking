@@ -1,8 +1,6 @@
 <?php
     include('connect.php');
-    session_start();
     require_once __DIR__ . '/../../includes/customer_guard.php';
-    $Account_no = $_SESSION["s_account_no"];
         // For Getting Customer Details
         $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
         $result_customer = mysqli_query($con, $query_customer);
@@ -587,7 +585,8 @@ function transferLimit()
                                         <h4 class="header-title">Quick Transfer</h4>
                                         <p class="card-title-desc"> </p>
         
-                                        <form class="custom-validation">
+                                        <form class="custom-validation" method="post">
+                                            <?php echo csrf_field(); ?>
                                             <div class="form-group">
                                                 
                                                 <label>Beneficial Person Name</label>
@@ -1039,6 +1038,7 @@ function transferLimit()
 
     if(isset($_REQUEST['btn_submit']))
     {
+        require_csrf();
         // Steps to do in quick transfer
         // 1. Reduce amount in loggin in customer
             // if account_bal is not sufficient then display message and stop exicution

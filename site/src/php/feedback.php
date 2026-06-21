@@ -1,8 +1,6 @@
 <?php
     include('connect.php');
-    session_start();
     require_once __DIR__ . '/../../includes/customer_guard.php';
-    $Account_no = $_SESSION["s_account_no"];
 
         // For Getting Customer Details
         $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
@@ -432,9 +430,8 @@
                                 
                                 <div class="card mb-0">
                                     <div class="card-body">
-                                        <form>
-                                            
-                                            
+                                        <form method="post">
+                                            <?php echo csrf_field(); ?>
                                             <div class="mt-3">
                                                 <label>Your Feedback</label>
                                                 <textarea name="txt_feedback" id="textarea" class="form-control" maxlength="225" rows="5" placeholder="max 225 chars." required></textarea>
@@ -829,26 +826,24 @@
 <?php
     if(isset($_REQUEST['btn_submit']))
     {
-        $text_feedback = $_REQUEST['txt_feedback'];
-        $heart_rating = $_REQUEST['txt_heart_rate'];
-        
+        require_csrf();
+        $text_feedback = trim($_REQUEST['txt_feedback']);
+        $heart_rating = $_REQUEST['txt_heart_rate'] ?? null;
         $current_time = date("Y-m-d H:i:s");
 
-        if ($heart_rating == NULL)
+        if ($heart_rating === null || $heart_rating === '')
         {
-        $query_for_insert_feeback = "INSERT INTO tbl_feedback (account_no, feedback, time) VALUES ($Account_no, '$text_feedback', '$current_time')";
-
+            $stmt = $con->prepare('INSERT INTO tbl_feedback (account_no, feedback, time) VALUES (?, ?, ?)');
+            $stmt->bind_param('iss', $Account_no, $text_feedback, $current_time);
         }
         else
         {
-            $query_for_insert_feeback = "INSERT INTO tbl_feedback (account_no, feedback, hearts, time) VALUES ($Account_no, '$text_feedback', $heart_rating, '$current_time')";
+            $heart_rating = (int) $heart_rating;
+            $stmt = $con->prepare('INSERT INTO tbl_feedback (account_no, feedback, hearts, time) VALUES (?, ?, ?, ?)');
+            $stmt->bind_param('isis', $Account_no, $text_feedback, $heart_rating, $current_time);
         }
-        $result =  mysqli_query($con, $query_for_insert_feeback) or die('SQL Error :: '.mysqli_error());
-         echo '<script type="text/JavaScript">  
-              sweetAlertSuccess();
-             </script>' 
-              ;
-
-
+        $stmt->execute();
+        $stmt->close();
+        echo '<script type="text/JavaScript">sweetAlertSuccess();</script>';
     }
 ?>

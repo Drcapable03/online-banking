@@ -1,11 +1,8 @@
 <!-- Tow Fileds Request Approved and Request Ignored -->
 <?php
     include('connect.php');
-    session_start();
-    // if Session is getting account_no then user can access index.php else require login
-    if(isset($_SESSION["s_admin_id"]))
-    {
-        $Admin_id = $_SESSION["s_admin_id"];
+    require_once __DIR__ . '/../../includes/admin_guard.php';
+    $Admin_id = $_SESSION['s_admin_id'];
         // For Getting Admin Details
         $query_admin = "SELECT * FROM tbl_admin WHERE admin_id=$Admin_id";
         $result_admin = mysqli_query($con, $query_admin);
@@ -34,10 +31,6 @@
         {
             $total_ignored = 0;
         }
-        
-    } else {
-        header("location:" . app_url('admin/dist/auth-login.php'));
-    }
 
 ?>
 

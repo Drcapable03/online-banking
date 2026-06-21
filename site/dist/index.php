@@ -1,10 +1,6 @@
 <?php
     include('connect.php');
-    session_start();
-    // if Session is getting account_no then user can access index.php else require login
-    if(isset($_SESSION["s_account_no"]) && isset($_SESSION['s_login']))
-    {
-        $Account_no = $_SESSION["s_account_no"];
+    require_once __DIR__ . '/../../includes/customer_guard.php';
         // For Getting Customer Details
         $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
         $result_customer = mysqli_query($con, $query_customer);
@@ -70,13 +66,6 @@
 // FROM tbl_transaction
 // WHERE MONTH(trans_date) = MONTH(CURRENT_DATE())
 // AND YEAR(trans_date) = YEAR(CURRENT_DATE())
-        
-
-        
-    } else {
-        header("location:" . app_url('site/dist/auth_login.php'));
-    }
-
 ?>
 
 

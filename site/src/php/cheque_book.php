@@ -1,11 +1,6 @@
 <?php
 include('connect.php');
-session_start();
-if (!isset($_SESSION['s_account_no']) || !isset($_SESSION['s_login'])) {
-    header('location:' . app_url('site/dist/auth_login.php'));
-    exit;
-}
-$Account_no = $_SESSION['s_account_no'];
+require_once __DIR__ . '/../../includes/customer_guard.php';
 $query_customer = "SELECT full_name FROM tbl_customer WHERE account_no='$Account_no'";
 $result_customer = mysqli_query($con, $query_customer);
 $row_customer = mysqli_fetch_array($result_customer);

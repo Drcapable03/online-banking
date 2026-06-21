@@ -1,10 +1,6 @@
 <?php
 include('connect.php');
-session_start();
-if (!isset($_SESSION['s_admin_id'])) {
-    header('location:' . app_url('admin/dist/auth-login.php'));
-    exit;
-}
+require_once __DIR__ . '/../../includes/admin_guard.php';
 $Admin_id = $_SESSION['s_admin_id'];
 $query_admin = "SELECT full_name FROM tbl_admin WHERE admin_id=$Admin_id";
 $result_admin = mysqli_query($con, $query_admin);

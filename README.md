@@ -85,6 +85,14 @@ online-banking/
     └── dist/             # Deployed admin app
 ```
 
+## Production deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for production Docker setup with nginx, `APP_ENV=production`, and security checklist.
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
 ## Legacy setup (XAMPP)
 
 If you prefer XAMPP instead of Docker:

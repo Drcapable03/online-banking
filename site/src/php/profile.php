@@ -1,9 +1,7 @@
 <?php
     include('connect.php');
-    session_start();
     require_once __DIR__ . '/../../includes/customer_guard.php';
     require_once __DIR__ . '/../../includes/uploads.php';
-    $Account_no = $_SESSION["s_account_no"];
 
     $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
     $result_customer = mysqli_query($con, $query_customer);
@@ -408,6 +406,7 @@
                                       
                                         
                                         <form class="needs-validation" method="post" enctype="multipart/form-data" novalidate>
+                                            <?php echo csrf_field(); ?>
                                         <div class="row col-md-6 mb-3 mt-3">
                                             <h5>Account Number : <?php echo $Account_no; ?></h5>
                                         </div>
@@ -918,6 +917,7 @@
 <?php
     if(isset($_REQUEST['btn_update']))
     {
+        require_csrf();
         $first_name = trim($_REQUEST['txt_fname']);
         $last_name = trim($_REQUEST['txt_lname']);
         $full_name = $first_name . " " . $last_name;

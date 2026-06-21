@@ -1,91 +1,7 @@
-
-<script type="text/javascript">
-  function alertifyPromptAdd(account_no)
-  {
-    function changeUrl(amount,operationType)
-    {
-        var url = new URL(window.location.href);
-        var query_string = window.location.href;
-        var search_params = new URLSearchParams(); 
-        search_params.append('operationType',operationType);
-        search_params.append('account_id', account_no);
-        search_params.append('amount',amount);
-        url.search = search_params.toString();
-        var new_url = url.toString();
-        window.location.href = new_url;
-    };
-    var amount = 0
-    alertify.prompt(
-        "Add Money",
-        "1000",
-        function(e, r) {
-            alertify.success("Added : " + r);
-            changeUrl(r,"credit");
-        },
-        
-        function() {
-          alertify.error("Cancel");
-        },
-      );
-      
-      
-  }
-
-  function alertifyPromptReduce(account_no)
-  {
-    function changeUrl(amount,operationType)
-    {
-        var url = new URL(window.location.href);
-        var query_string = window.location.href;
-        var search_params = new URLSearchParams(); 
-        search_params.append('operationType',operationType);
-        search_params.append('account_id', account_no);
-        search_params.append('amount',amount);
-        url.search = search_params.toString();
-        var new_url = url.toString();
-        window.location.href = new_url;
-    };
-    alertify.prompt(
-        "Reduce Money",
-        "1000",
-        function(e, r) {
-          alertify.success("Reduced : " + r);
-          changeUrl(r,"debit");
-
-        },
-        function() {
-          alertify.error("Cancel");
-        }
-      );
-  }
-
-  function sweetAlertSuccess()
-  {
-    Swal.fire({
-      position: "top-end",
-      icon: "success",
-      title: "Money Successfully Transferred",
-      showConfirmButton: !1,
-      timer: 1500
-    }); 
-  }
-  function notEnoughBal()
-  {
-    Swal.fire({
-      title: "Operation Failed",
-      text: "Not Have Enough Balance !",
-      icon: "error"
-    });
-  }
-  
-</script>
 <?php
     include('connect.php');
-    session_start();
-    // if Session is getting account_no then user can access index.php else require login
-    if(isset($_SESSION["s_admin_id"]))
-    {
-        $Admin_id = $_SESSION["s_admin_id"];
+    require_once __DIR__ . '/../../includes/admin_guard.php';
+    $Admin_id = $_SESSION['s_admin_id'];
         // For Getting Admin Details
         $query_admin = "SELECT * FROM tbl_admin WHERE admin_id=$Admin_id";
         $result_admin = mysqli_query($con, $query_admin);
@@ -121,8 +37,8 @@
         
         if(isset($_GET['operationType']))
         {
-            $manage_account_no = $_GET['account_id'];
-            $manage_amount = $_GET['amount'];
+            $manage_account_no = intval($_GET['account_id']);
+            $manage_amount = intval($_GET['amount']);
             $manage_oprationType = $_GET['operationType'];
             // Opeartion Credit
             if($manage_oprationType == "credit")
@@ -296,13 +212,91 @@
             }
         }
         }
-    } else {
-        header("location:" . app_url('admin/dist/auth-login.php'));
-    }
 
 
 ?>
 
+
+<script type="text/javascript">
+  function alertifyPromptAdd(account_no)
+  {
+    function changeUrl(amount,operationType)
+    {
+        var url = new URL(window.location.href);
+        var query_string = window.location.href;
+        var search_params = new URLSearchParams(); 
+        search_params.append('operationType',operationType);
+        search_params.append('account_id', account_no);
+        search_params.append('amount',amount);
+        url.search = search_params.toString();
+        var new_url = url.toString();
+        window.location.href = new_url;
+    };
+    var amount = 0
+    alertify.prompt(
+        "Add Money",
+        "1000",
+        function(e, r) {
+            alertify.success("Added : " + r);
+            changeUrl(r,"credit");
+        },
+        
+        function() {
+          alertify.error("Cancel");
+        },
+      );
+      
+      
+  }
+
+  function alertifyPromptReduce(account_no)
+  {
+    function changeUrl(amount,operationType)
+    {
+        var url = new URL(window.location.href);
+        var query_string = window.location.href;
+        var search_params = new URLSearchParams(); 
+        search_params.append('operationType',operationType);
+        search_params.append('account_id', account_no);
+        search_params.append('amount',amount);
+        url.search = search_params.toString();
+        var new_url = url.toString();
+        window.location.href = new_url;
+    };
+    alertify.prompt(
+        "Reduce Money",
+        "1000",
+        function(e, r) {
+          alertify.success("Reduced : " + r);
+          changeUrl(r,"debit");
+
+        },
+        function() {
+          alertify.error("Cancel");
+        }
+      );
+  }
+
+  function sweetAlertSuccess()
+  {
+    Swal.fire({
+      position: "top-end",
+      icon: "success",
+      title: "Money Successfully Transferred",
+      showConfirmButton: !1,
+      timer: 1500
+    }); 
+  }
+  function notEnoughBal()
+  {
+    Swal.fire({
+      title: "Operation Failed",
+      text: "Not Have Enough Balance !",
+      icon: "error"
+    });
+  }
+  
+</script>
 
 <!doctype html>
 <html lang="en">
