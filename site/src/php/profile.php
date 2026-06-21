@@ -1,3 +1,25 @@
+<?php
+    include('connect.php');
+    session_start();
+    require_once __DIR__ . '/../../includes/customer_guard.php';
+    $Account_no = $_SESSION["s_account_no"];
+
+    $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
+    $result_customer = mysqli_query($con, $query_customer);
+    $row_customer = mysqli_fetch_array($result_customer);
+
+    $first_name = strtok($row_customer['full_name'], " ");
+    $full_name_arr = explode(' ', trim($row_customer['full_name']));
+    $last_name = $full_name_arr[1] ?? '';
+
+    $query_address = "SELECT * FROM tbl_address WHERE account_no = $Account_no";
+    $result_address = mysqli_query($con, $query_address);
+    $row_address = mysqli_fetch_array($result_address);
+
+    $query_for_get_password = "SELECT password FROM tbl_account WHERE account_no = $Account_no";
+    $result_password = mysqli_query($con, $query_for_get_password);
+    $acc_password = mysqli_fetch_array($result_password)[0];
+?>
 <script type="text/javascript">
   function sweetAlertSuccess()
   {
@@ -10,38 +32,6 @@
     }); 
   }
 </script>
-
-<?php
-    include('connect.php');
-    session_start();
-    // if Session is getting account_no then user can access index.php else require login
-    if(isset($_SESSION["s_account_no"]) && isset($_SESSION['s_login']))
-    {
-        $Account_no = $_SESSION["s_account_no"];
-        // For Getting Customer Details
-        $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
-        $result_customer = mysqli_query($con, $query_customer);
-        $row_customer = mysqli_fetch_array($result_customer);
-
-        $first_name = strtok($row_customer['full_name'], " ");
-        $full_name_arr = explode(' ',trim($row_customer['full_name']));
-        $last_name = $full_name_arr[1];
-
-        // getting customer address details
-        $query_address = "SELECT * FROM tbl_address WHERE account_no = $Account_no";
-        $result_address = mysqli_query($con,$query_address);
-        $row_address = mysqli_fetch_array($result_address);
-
-        // Getting Account Password
-        $query_for_get_password = "SELECT password FROM tbl_account WHERE account_no = $Account_no";
-        $result_password = mysqli_query($con, $query_for_get_password);
-        $acc_password = mysqli_fetch_array($result_password)[0];
-        
-    } else {
-        header("location:" . app_url('site/dist/auth_login.php'));
-    }
-
-?>
 <!doctype html>
 <html lang="en">
 

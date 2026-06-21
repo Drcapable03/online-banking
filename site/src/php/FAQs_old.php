@@ -1,43 +1,8 @@
-<script type="text/javascript">
-  function alertifySuccess()
-  {
-    alertify.alert("Info", "Transaction Success", function() {
-    //   window.location = '<?php echo app_url(''''); ?>';
-      alertify.success("Ok");
-
-    });
-    return false;
-  }
-
-  function sweetAlertSuccess()
-  {
-    Swal.fire({
-      position: "center",
-      icon: "success",
-      title: "Thanks for your feedback\nWe Appiciated that.",
-      showConfirmButton: !1,
-      timer: 1600
-    }); 
-  }
-
-//   t("#sa-position").click(function() {
-//         Swal.fire({
-//           position: "top-end",
-//           icon: "success",
-//           title: "Your work has been saved",
-//           showConfirmButton: !1,
-//           timer: 1500
-//         });
-//       }
-</script>
-
 <?php
     include('connect.php');
     session_start();
-    // if Session is getting account_no then user can access index.php else require login
-    if(isset($_SESSION["s_account_no"]) && isset($_SESSION['s_login']))
-    {
-        $Account_no = $_SESSION["s_account_no"];
+    require_once __DIR__ . '/../../includes/customer_guard.php';
+    $Account_no = $_SESSION["s_account_no"];
         // For Getting Customer Details
         $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
         $result_customer = mysqli_query($con, $query_customer);
@@ -74,14 +39,28 @@
         else {
             $debit_sum = 0;
         }
-        
-
-        
-    } else {
-        header("location:" . app_url('site/dist/auth_login.php'));
-    }
-
 ?>
+
+<script type="text/javascript">
+  function alertifySuccess()
+  {
+    alertify.alert("Info", "Transaction Success", function() {
+      alertify.success("Ok");
+    });
+    return false;
+  }
+
+  function sweetAlertSuccess()
+  {
+    Swal.fire({
+      position: "center",
+      icon: "success",
+      title: "Thanks for your feedback\nWe Appiciated that.",
+      showConfirmButton: !1,
+      timer: 1600
+    }); 
+  }
+</script>
 
 <!doctype html>
 <html lang="en">

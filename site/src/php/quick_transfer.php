@@ -1,79 +1,8 @@
-<script type="text/javascript">
-
-function checkPurpose(val){
-    var element=document.getElementById('txt_purpose_hide');
-    if(val=='Select'||val=='Others')
-        element.style.display='block';
-    else  
-        element.style.display='none';
-}
-
-
-  function sweetAlertSuccess()
-  {
-    Swal.fire({
-      position: "top-end",
-      icon: "success",
-      title: "Money Successfully Transferred",
-      showConfirmButton: !1,
-      timer: 1500
-    }); 
-  }
-
-  function wrongAccountNo()
-  {
-    Swal.fire({
-      title: "Transaction Failed",
-      text: "Account Number is Incorrect",
-      icon: "error"
-    });
-  }
-  function mismatchAccountNo()
-  {
-    Swal.fire({
-      title: "Transaction Failed",
-      text: "Account Number Not Matched",
-      icon: "error"
-    });
-  }
-  function lowBalance()
-  {
-    Swal.fire({
-      title: "Transaction Failed",
-      text: "You don't have sufficient balance for this Transaction.",
-      icon: "error"
-    });
-  }
-  function sameAccountNo()
-  {
-    Swal.fire({
-      title: "Transaction Failed",
-      text: "You can not provide your own account number.",
-      icon: "error"
-    });
-  }
-  function transferLimit()
-  {
-    Swal.fire({
-      title: "Transaction Failed",
-      text: "Limit of Quick Transfer is 500 to 20,000",
-      icon: "error"
-    });
-  }
-
-  
-
-</script>
-
-
-
 <?php
     include('connect.php');
     session_start();
-    // if Session is getting account_no then user can access index.php else require login
-    if(isset($_SESSION["s_account_no"]))
-    {
-        $Account_no = $_SESSION["s_account_no"];
+    require_once __DIR__ . '/../../includes/customer_guard.php';
+    $Account_no = $_SESSION["s_account_no"];
         // For Getting Customer Details
         $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
         $result_customer = mysqli_query($con, $query_customer);
@@ -137,17 +66,69 @@ function checkPurpose(val){
         else {
             $debit_sum_of_this_month = 0;
         }
-        
-
-        
-    } else {
-        header("location:" . app_url('site/dist/auth_login.php'));
-    }
-
-    
 ?>
 
+<script type="text/javascript">
+function checkPurpose(val){
+    var element=document.getElementById('txt_purpose_hide');
+    if(val=='Select'||val=='Others')
+        element.style.display='block';
+    else
+        element.style.display='none';
+}
 
+function sweetAlertSuccess()
+{
+    Swal.fire({
+      position: "top-end",
+      icon: "success",
+      title: "Money Successfully Transferred",
+      showConfirmButton: !1,
+      timer: 1500
+    });
+}
+
+function wrongAccountNo()
+{
+    Swal.fire({
+      title: "Transaction Failed",
+      text: "Account Number is Incorrect",
+      icon: "error"
+    });
+}
+function mismatchAccountNo()
+{
+    Swal.fire({
+      title: "Transaction Failed",
+      text: "Account Number Not Matched",
+      icon: "error"
+    });
+}
+function lowBalance()
+{
+    Swal.fire({
+      title: "Transaction Failed",
+      text: "You don't have sufficient balance for this Transaction.",
+      icon: "error"
+    });
+}
+function sameAccountNo()
+{
+    Swal.fire({
+      title: "Transaction Failed",
+      text: "You can not provide your own account number.",
+      icon: "error"
+    });
+}
+function transferLimit()
+{
+    Swal.fire({
+      title: "Transaction Failed",
+      text: "Limit of Quick Transfer is 500 to 20,000",
+      icon: "error"
+    });
+}
+</script>
 
 <!doctype html>
 <html lang="en">
