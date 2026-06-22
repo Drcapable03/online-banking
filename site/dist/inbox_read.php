@@ -60,6 +60,7 @@
         <link href="assets/css/icons.min.css" rel="stylesheet" type="text/css" />
         <!-- App Css-->
         <link href="assets/css/app.min.css" rel="stylesheet" type="text/css" />
+        <link href="assets/css/customer-nav.css" rel="stylesheet" type="text/css" />
 
     </head>
 
@@ -267,112 +268,22 @@
                             </button>
                             <div class="dropdown-menu dropdown-menu-right">
                                 <!-- item-->
-                                <a class="dropdown-item" href="#"><i class="mdi mdi-face-profile font-size-16 align-middle mr-1"></i> Profile</a>
+                                <a class="dropdown-item" href="profile.php"><i class="mdi mdi-face-profile font-size-16 align-middle mr-1"></i> Profile</a>
                                 <a class="dropdown-item" href="#"><i class="mdi mdi-credit-card-outline font-size-16 align-middle mr-1"></i> Billing</a>
                                 <a class="dropdown-item" href="#"><i class="mdi mdi-account-settings font-size-16 align-middle mr-1"></i> Settings</a>
                                 <a class="dropdown-item" href="#"><i class="mdi mdi-lock font-size-16 align-middle mr-1"></i> Lock screen</a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="auth_login.php"><i class="mdi mdi-logout font-size-16 align-middle mr-1"></i> Logout</a>
+                                <a class="dropdown-item" href="<?php echo app_url('site/dist/auth_login.php'); ?>"><i class="mdi mdi-logout font-size-16 align-middle mr-1"></i> Logout</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </header>
-
-             <div class="topnav">
-                <div class="container-fluid">
-                    <nav class="navbar navbar-light navbar-expand-lg topnav-menu">
-
-                        <div class="collapse navbar-collapse" id="topnav-menu-content">
-                            <ul class="navbar-nav">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="index.php">
-                                        <i class="mdi mdi-storefront mr-2"></i>Transactions
-                                    </a>
-                                </li>
-
-                                <li class="nav-item">
-                                    <a class="nav-link" href="quick_transfer.php">
-                                        <i class="mdi mdi-bank-transfer mr-2"></i>Quick Transfer
-                                    </a>
-                                </li>
-
-                                <li class="nav-item">
-                                    <a class="nav-link" href="inbox.php">
-                                        <i class="mdi mdi mdi-email-send-outline mr-2"></i>Request Money
-                                    </a>
-                                </li>
-
-                                <li class="nav-item">
-                                    <a class="nav-link" href="profile.php">
-                                        <i class="mdi mdi mdi mdi mdi-human-greeting  mr-2"></i>Profile
-                                    </a>
-                                </li>
-
-                                <!-- <li class="nav-item">
-                                    <a class="nav-link" href="cheque_book.php">
-                                        <i class="mdi mdi mdi mdi mdi-book-open mr-2"></i>Request Cheque Book
-                                    </a>
-                                </li> -->
-
-                                <li class="nav-item">
-                                    <a class="nav-link" href="feedback.php">
-                                        <i class="mdi mdi mdi mdi-heart-outline mr-2"></i>Feedback
-                                    </a>
-                                </li>
-
-                                <li class="nav-item">
-                                    <a class="nav-link" href="FAQs.php">
-                                        <i class="mdi mdi-book-open-variant mr-2"></i>FAQs
-                                    </a>
-                                </li>
-
-                                
-
-                                <!-- <li class="nav-item dropdown">
-                                    <a class="nav-link dropdown-toggle arrow-none" href="#" id="topnav-advancedui" role="button"
-                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="mdi mdi-package-variant-closed mr-2"></i>Advanced UI <div class="arrow-down"></div>
-                                    </a>
-                                    <div class="dropdown-menu" aria-labelledby="topnav-advancedui">
-                                        <a href="advanced-alertify.html" class="dropdown-item">Alertify</a>
-                                        <a href="advanced-rating.html" class="dropdown-item">Rating</a>
-                                        <a href="advanced-nestable.html" class="dropdown-item">Nestable</a>
-                                        <a href="advanced-rangeslider.html" class="dropdown-item">Range Slider</a>
-                                        <a href="advanced-sweet-alert.html" class="dropdown-item">Sweet-Alert</a>
-                                        <a href="advanced-lightbox.html" class="dropdown-item">Lightbox</a>
-                                        <a href="advanced-maps.html" class="dropdown-item">Maps</a>
-                                    </div>
-                                </li> -->
-
-                            </ul>
-                        </div>
-                    </nav>
-                </div>
-            </div>
-
-            <!-- ============================================================== -->
-            <!-- Start right Content here -->
-            <!-- ============================================================== -->
-            <div class="main-content">
-
-                <div class="page-content">
-                    <div class="container-fluid">
-
-                        <!-- start page title -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="page-title-box d-flex align-items-center justify-content-between">
-                                    <h4 class="mb-0 font-size-18">Inbox</h4>
-
-                                    <div class="page-title-right">
-                                        <ol class="breadcrumb m-0">
-                                            <li class="breadcrumb-item"><a href="javascript: void(0);">Net Banking</a></li>
-                                            <li class="breadcrumb-item"><a href="javascript: void(0);">Inbox Read</a></li>
-                                        </ol>
-                                    </div>
-                                </div>
-                            </div>
+            <?php
+                $customer_nav_section = 'pay';
+                $customer_nav_page = 'request_money';
+                require __DIR__ . '/../../includes/customer_nav.php';
+            ?>
                         </div>     
                         <!-- end page title -->
 

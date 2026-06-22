@@ -1,0 +1,42 @@
+.customer-mega-menu {
+    min-width: 520px;
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12);
+}
+
+.customer-mega-menu .dropdown-header {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #6c757d;
+    padding-left: 0.75rem;
+}
+
+.customer-mega-menu .dropdown-item {
+    padding: 0.45rem 0.75rem;
+    font-size: 0.9rem;
+    border-radius: 0.2rem;
+}
+
+.customer-mega-menu .dropdown-item.active,
+.customer-mega-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item.active,
+.topnav .nav-link.active {
+    color: #fff;
+    background-color: #5664d2;
+}
+
+.topnav .nav-link.active {
+    font-weight: 600;
+}
+
+@media (max-width: 991.98px) {
+    .customer-mega-menu {
+        min-width: 100%;
+    }
+
+    .customer-mega-menu .border-left {
+        border-left: none !important;
+        border-top: 1px solid #e9ecef;
+    }
+}
