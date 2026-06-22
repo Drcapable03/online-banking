@@ -1,4 +1,3 @@
-<!-- Tow Fileds Request Approved and Request Ignored -->
 <?php
     include('connect.php');
     require_once __DIR__ . '/../../includes/admin_guard.php';
@@ -38,6 +37,10 @@
             $request_id = intval($_GET['request_id']);
             $request_details = mysqli_query($con,"SELECT * FROM tbl_requests WHERE request_id=$request_id");
             $row_request = mysqli_fetch_array($request_details);
+            if (!$row_request) {
+                header('location: view_requests.php');
+                exit;
+            }
             $sender_account_no = $row_request['to_account'];
 
             $query_for_sender_details = "SELECT * FROM tbl_customer WHERE account_no = $sender_account_no";

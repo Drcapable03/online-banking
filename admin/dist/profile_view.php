@@ -1,17 +1,3 @@
-<script type="text/javascript">
-  function sweetAlertSuccess()
-  {
-    Swal.fire({
-      position: "center",
-      icon: "success",
-      title: "Your Profile is Updated",
-      showConfirmButton: !1,
-      timer: 1400
-    }); 
-    
-  }
-</script>
-
 <?php
     include('connect.php');
     require_once __DIR__ . '/../../includes/admin_guard.php';
@@ -33,7 +19,7 @@
 
             $first_name = strtok($row_customer['full_name'], " ");
             $full_name_arr = explode(' ',trim($row_customer['full_name']));
-            $last_name = $full_name_arr[1];
+            $last_name = $full_name_arr[1] ?? '';
 
             // getting customer address details
             $query_address = "SELECT * FROM tbl_address WHERE account_no = $Account_no";
@@ -53,7 +39,8 @@
         }
         else
         {
-            // header('location: index.php');
+            header('location: index.php');
+            exit;
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btn_save_currency']) && isset($_GET['account_no'])) {
@@ -78,6 +65,18 @@
     <head>
         <meta charset="utf-8" />
         <title>Profile View</title>
+        <script type="text/javascript">
+          function sweetAlertSuccess()
+          {
+            Swal.fire({
+              position: "center",
+              icon: "success",
+              title: "Your Profile is Updated",
+              showConfirmButton: !1,
+              timer: 1400
+            });
+          }
+        </script>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
         <meta content="Themesdesign" name="author" />

@@ -1,4 +1,3 @@
-<!-- Tow Fileds Request Approved and Request Ignored -->
 <?php
     include('connect.php');
     require_once __DIR__ . '/../../includes/admin_guard.php';

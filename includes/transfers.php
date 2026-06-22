@@ -114,13 +114,74 @@ function execute_admin_balance_op(mysqli $con, int $pool_account, int $customer_
         return ['success' => false, 'error' => 'invalid_amount'];
     }
 
-    if ($operation === 'credit') {
-        return execute_transfer($con, $pool_account, $customer_account, $amount, $purpose);
+    if (!in_array($operation, ['credit', 'debit'], true)) {
+        return ['success' => false, 'error' => 'invalid_operation'];
     }
 
-    if ($operation === 'debit') {
-        return execute_transfer($con, $customer_account, $pool_account, $amount, $purpose);
+    $exists_stmt = $con->prepare('SELECT account_no FROM tbl_balance WHERE account_no = ?');
+    $exists_stmt->bind_param('i', $customer_account);
+    $exists_stmt->execute();
+    $exists = $exists_stmt->get_result()->fetch_assoc();
+    $exists_stmt->close();
+
+    if (!$exists) {
+        return ['success' => false, 'error' => 'invalid_account'];
     }
 
-    return ['success' => false, 'error' => 'invalid_operation'];
+    $trans_date = date('Y-m-d H:i:s');
+
+    mysqli_begin_transaction($con);
+    try {
+        if ($operation === 'credit') {
+            $credit_stmt = $con->prepare('UPDATE tbl_balance SET balance = balance + ? WHERE account_no = ?');
+            $credit_stmt->bind_param('ii', $amount, $customer_account);
+            $credit_stmt->execute();
+            if ($credit_stmt->affected_rows !== 1) {
+                throw new RuntimeException('credit_failed');
+            }
+            $credit_stmt->close();
+
+            $bal_stmt = $con->prepare('SELECT balance FROM tbl_balance WHERE account_no = ?');
+            $bal_stmt->bind_param('i', $customer_account);
+            $bal_stmt->execute();
+            $balance = (int) $bal_stmt->get_result()->fetch_assoc()['balance'];
+            $bal_stmt->close();
+
+            $credit_type = 'CREDIT';
+            $insert = $con->prepare('INSERT INTO tbl_transaction (trans_date, amount, trans_type, purpose, to_account, account_no, account_bal) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $insert->bind_param('sissiii', $trans_date, $amount, $credit_type, $purpose, $customer_account, $customer_account, $balance);
+            $insert->execute();
+            $insert->close();
+        } else {
+            $debit_stmt = $con->prepare('UPDATE tbl_balance SET balance = balance - ? WHERE account_no = ? AND balance >= ?');
+            $debit_stmt->bind_param('iii', $amount, $customer_account, $amount);
+            $debit_stmt->execute();
+            if ($debit_stmt->affected_rows !== 1) {
+                throw new RuntimeException('insufficient_balance');
+            }
+            $debit_stmt->close();
+
+            $bal_stmt = $con->prepare('SELECT balance FROM tbl_balance WHERE account_no = ?');
+            $bal_stmt->bind_param('i', $customer_account);
+            $bal_stmt->execute();
+            $balance = (int) $bal_stmt->get_result()->fetch_assoc()['balance'];
+            $bal_stmt->close();
+
+            $debit_type = 'DEBIT';
+            $insert = $con->prepare('INSERT INTO tbl_transaction (trans_date, amount, trans_type, purpose, to_account, account_no, account_bal) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $insert->bind_param('sissiii', $trans_date, $amount, $debit_type, $purpose, $pool_account, $customer_account, $balance);
+            $insert->execute();
+            $insert->close();
+        }
+
+        mysqli_commit($con);
+        return ['success' => true, 'error' => null];
+    } catch (Throwable $e) {
+        mysqli_rollback($con);
+        $error = $e->getMessage();
+        if (!in_array($error, ['insufficient_balance', 'credit_failed'], true)) {
+            $error = 'transfer_failed';
+        }
+        return ['success' => false, 'error' => $error];
+    }
 }

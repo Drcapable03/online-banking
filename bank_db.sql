@@ -118,7 +118,8 @@ CREATE TABLE `tbl_balance` (
 --
 
 INSERT INTO `tbl_balance` (`account_no`, `account_type`, `balance`) VALUES
-(338509634, 'SAVING', 0);
+(338509629, 'SAVING', 0),
+(338509634, 'SAVING', 5000);
 
 -- --------------------------------------------------------
 

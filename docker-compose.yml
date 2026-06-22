@@ -15,6 +15,7 @@ services:
       - ./docker/mysql/init/02-password-upgrade.sql:/docker-entrypoint-initdb.d/02-password-upgrade.sql:ro
       - ./docker/mysql/init/03-profile-fields.sql:/docker-entrypoint-initdb.d/03-profile-fields.sql:ro
       - ./docker/mysql/init/04-currency-ssn.sql:/docker-entrypoint-initdb.d/04-currency-ssn.sql:ro
+      - ./docker/mysql/init/05-pool-account.sql:/docker-entrypoint-initdb.d/05-pool-account.sql:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
