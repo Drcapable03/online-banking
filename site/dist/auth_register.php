@@ -1,4 +1,9 @@
-<?php require_once __DIR__ . '/../../includes/config.php'; ?>
+<?php
+require_once __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/session.php';
+require_once __DIR__ . '/../../includes/csrf.php';
+start_secure_session();
+?>
 <script type="text/javascript">
   function alertifySuccess()
   {
@@ -71,7 +76,8 @@
                                         <h4 class="header-title">Register Here</h4>
                                       
                                         
-                                        <form class="needs-validation" novalidate>
+                                        <form class="needs-validation" method="post" novalidate>
+                                            <?php echo csrf_field(); ?>
                                             <div class="row">
                                                 <div class="col-md-6 mb-3">
                                                 <label for="validationTooltip01">First name</label>
@@ -272,81 +278,68 @@
 <?php
 
   include('connect.php');
+  require_once __DIR__ . '/../../includes/currency.php';
 
   if(isset($_REQUEST['btnSubmit']))
   {
-    $first_name = $_REQUEST['txt_fname'];
-    $last_name = $_REQUEST['txt_lname'];
-    $full_name = $first_name . " " . $last_name;
+    require_csrf();
 
+    $first_name = trim($_REQUEST['txt_fname']);
+    $last_name = trim($_REQUEST['txt_lname']);
+    $full_name = $first_name . ' ' . $last_name;
     $gender = $_REQUEST['txt_gender'];
-    $birth_date = $_REQUEST['txt_bdate'];
-    $birth_date = date("Y-m-d", strtotime($birth_date) );
-
-    $mobile = $_REQUEST['txt_mobile'];
-    $email = $_REQUEST['txt_email'];
-    $address = $_REQUEST['txt_address'];
-    $city = $_REQUEST['txt_city'];
-    $state = $_REQUEST['txt_state'];
-    $zip = $_REQUEST['txt_zip'];
+    $birth_date = date('Y-m-d', strtotime($_REQUEST['txt_bdate']));
+    $mobile = trim($_REQUEST['txt_mobile']);
+    $email = trim($_REQUEST['txt_email']);
+    $address = trim($_REQUEST['txt_address']);
+    $city = trim($_REQUEST['txt_city']);
+    $state = trim($_REQUEST['txt_state']);
+    $zip = (int) $_REQUEST['txt_zip'];
     $username = trim($_REQUEST['txt_username']);
     $password = hash_password($_REQUEST['txt_password']);
-
     $account_type = $_REQUEST['txt_account_type'];
+    $primary_currency = system_primary_currency();
 
-    $stmt = $con->prepare('INSERT INTO tbl_account (username, password) VALUES (?, ?)');
-    $stmt->bind_param('ss', $username, $password);
-    $result = $stmt->execute();
-    $stmt->close();
-    
-    if ($result)
-    {
-      // get account_no from username
-      $query_account_no = "SELECT account_no FROM tbl_account WHERE username='$username'";
-      $result_account_no = mysqli_query($con, $query_account_no);
-      $account_no = mysqli_fetch_array($result_account_no)[0];  // ! [0] for the first value of array
-      
-      // query for insert record in tbl_customer
-      $query_for_tbl_customer = "INSERT INTO tbl_customer (account_no, full_name, gender, birth_date, mobile, email) VALUES ($account_no,'$full_name', '$gender', '$birth_date','$mobile', '$email')";
-      
-      $result = mysqli_query($con, $query_for_tbl_customer) or die('SQL Error :: '.mysqli_error($con));
+    mysqli_begin_transaction($con);
+    try {
+        $stmt = $con->prepare('INSERT INTO tbl_account (username, password) VALUES (?, ?)');
+        $stmt->bind_param('ss', $username, $password);
+        if (!$stmt->execute()) {
+            throw new RuntimeException('username_exists');
+        }
+        $account_no = (int) $con->insert_id;
+        $stmt->close();
 
-      // insert record in tbl_address
-      $query_for_tbl_address = "INSERT INTO tbl_address (account_no, home_address, city, state, pincode) VALUES ($account_no,'$address','$city','$state',$zip)";
+        $customer_stmt = $con->prepare('INSERT INTO tbl_customer (account_no, full_name, gender, birth_date, mobile, email, primary_currency) VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $customer_stmt->bind_param('issssss', $account_no, $full_name, $gender, $birth_date, $mobile, $email, $primary_currency);
+        $customer_stmt->execute();
+        $customer_stmt->close();
 
-      $result = mysqli_query($con, $query_for_tbl_address) or die('SQL Error :: '.mysqli_error($con));
+        $address_stmt = $con->prepare('INSERT INTO tbl_address (account_no, home_address, city, state, pincode) VALUES (?, ?, ?, ?, ?)');
+        $address_stmt->bind_param('isssi', $account_no, $address, $city, $state, $zip);
+        $address_stmt->execute();
+        $address_stmt->close();
 
-      
-      
-      // Query for tbl_account_type
-      $query_for_account_type = "INSERT INTO tbl_account_type (account_no,account_type) VALUES ($account_no, '$account_type')";
-      $result_of_account_type = mysqli_query($con, $query_for_account_type) or die('SQL Error :: '.mysqli_error($con));
+        $type_stmt = $con->prepare('INSERT INTO tbl_account_type (account_no, account_type) VALUES (?, ?)');
+        $type_stmt->bind_param('is', $account_no, $account_type);
+        $type_stmt->execute();
+        $type_stmt->close();
 
-      // Query for tbl_account_bal
-      $query_for_account_bal = "INSERT INTO tbl_balance (account_no,account_type,balance) VALUES ($account_no, '$account_type',0)";
-      $result_of_account_bal = mysqli_query($con, $query_for_account_bal) or die('SQL Error :: '.mysqli_error($con));
+        $balance = 0;
+        $balance_stmt = $con->prepare('INSERT INTO tbl_balance (account_no, account_type, balance) VALUES (?, ?, ?)');
+        $balance_stmt->bind_param('isi', $account_no, $account_type, $balance);
+        $balance_stmt->execute();
+        $balance_stmt->close();
 
-      // After Successfully insert all records show alert Dialog Box that Register Successfully
-      if ($result)
-      {
-        echo '<script type="text/JavaScript">  
-        alertifySuccess();
-       </script>' 
-        ;
-        
-
-      }
-      else
-      {
-        print($result);
-
-        echo "ERROR: Could not able to execute $query. " . mysqli_error($con);
-      }
-      
-    } else {
-      // todo : Show error -> username already exist
-      print("username already Exist");
+        mysqli_commit($con);
+        echo '<script type="text/JavaScript">alertifySuccess();</script>';
+    } catch (Throwable $e) {
+        mysqli_rollback($con);
+        if ($e->getMessage() === 'username_exists') {
+            echo '<script type="text/JavaScript">alert("Username already exists.");</script>';
+        } else {
+            echo '<script type="text/JavaScript">alert("Registration failed. Please try again.");</script>';
+        }
     }
-     
   }
 ?>

@@ -1,0 +1,21 @@
+{
+    "name": "drcapable03/online-banking",
+    "description": "Online banking demo application",
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "files": [
+            "includes/config.php",
+            "includes/currency.php",
+            "includes/encryption.php",
+            "includes/rate_limit.php"
+        ]
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

@@ -22,8 +22,8 @@ docker compose up -d --build
 
 | Portal | URL |
 |--------|-----|
-| Customer | http://localhost:8080/online-banking/site/dist/auth_login.php |
-| Admin | http://localhost:8080/online-banking/admin/dist/auth-login.php |
+| Customer | http://localhost:8081/online-banking/site/dist/auth_login.php |
+| Admin | http://localhost:8081/online-banking/admin/dist/auth-login.php |
 
 **Test credentials** (seed data in `bank_db.sql`):
 
@@ -56,7 +56,10 @@ Use Docker as above. PHP source lives in `site/src/php/` and `admin/src/php/` an
 Configuration is driven by environment variables (see `.env.example`):
 
 - `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` — database connection
-- `APP_BASE_URL` — base URL for redirects (default: `http://localhost:8080/online-banking`)
+- `APP_BASE_URL` — base URL for redirects (default: `http://localhost:8081/online-banking`)
+- `APP_PRIMARY_CURRENCY` — system default currency (default: `USD`)
+- `SSN_ENCRYPTION_KEY` — encrypts SSN at rest in production
+- `ADMIN_REGISTRATION_ENABLED` — set `true` only to allow new admin signups
 
 ### Frontend assets (optional)
 

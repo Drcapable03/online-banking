@@ -516,8 +516,8 @@ function transferLimit()
                                                 </span>
                                             </div>
                                         </div>
-                                        <h4 class="m-0 align-self-center">&#x20b9; <?php echo $credit_sum ?></h4>
-                                          <p class="mb-0 mt-3 text-muted"><span class="text-success">&#x20b9; <?php echo $credit_sum_of_this_month ?> <i class="mdi mdi-trending-up mr-1"></i></span> From This Month</p>
+                                        <h4 class="m-0 align-self-center"><?php echo $Currency_symbol; ?> <?php echo $credit_sum ?></h4>
+                                          <p class="mb-0 mt-3 text-muted"><span class="text-success"><?php echo $Currency_symbol; ?> <?php echo $credit_sum_of_this_month ?> <i class="mdi mdi-trending-up mr-1"></i></span> From This Month</p>
                                     </div>
                                 </div>
                             </div>
@@ -535,8 +535,8 @@ function transferLimit()
                                                 </span>
                                             </div>
                                         </div>
-                                        <h4 class="m-0 align-self-center">&#x20b9; <?php echo $debit_sum ?></h4>
-                                        <p class="mb-0 mt-3 text-muted"><span class="text-danger">&#x20b9; <?php echo $debit_sum_of_this_month ?> <i class="mdi mdi-trending-up mr-1"></i></span> From This Month</p>
+                                        <h4 class="m-0 align-self-center"><?php echo $Currency_symbol; ?> <?php echo $debit_sum ?></h4>
+                                        <p class="mb-0 mt-3 text-muted"><span class="text-danger"><?php echo $Currency_symbol; ?> <?php echo $debit_sum_of_this_month ?> <i class="mdi mdi-trending-up mr-1"></i></span> From This Month</p>
                                     </div>
                                 </div>
                             </div>
@@ -554,16 +554,16 @@ function transferLimit()
                                                 </span>
                                             </div>
                                         </div>
-                                        <h4 class="m-0 align-self-center">&#x20b9; <?php echo $account_bal ?></h4>
+                                        <h4 class="m-0 align-self-center"><?php echo $Currency_symbol; ?> <?php echo $account_bal ?></h4>
                                         <?php 
                                             $result_of_this_month = $credit_sum_of_this_month - $debit_sum_of_this_month;
                                             if ($result_of_this_month < 0)
                                             {
-                                                $echo_result_of_this_month =  '<p class="mb-0 mt-3 text-muted"><span class="text-danger">&#x20b9; '.$result_of_this_month.' <i class="mdi mdi-trending-up mr-1"></i></span> From This Month</p>';
+                                                $echo_result_of_this_month =  '<p class="mb-0 mt-3 text-muted"><span class="text-danger">'.$Currency_symbol.' '.$result_of_this_month.' <i class="mdi mdi-trending-up mr-1"></i></span> From This Month</p>';
                                             }
                                             else
                                             {
-                                                $echo_result_of_this_month =  '<p class="mb-0 mt-3 text-muted"><span class="text-success">&#x20b9; '.$result_of_this_month.' <i class="mdi mdi-trending-up mr-1"></i></span> From This Month</p>';
+                                                $echo_result_of_this_month =  '<p class="mb-0 mt-3 text-muted"><span class="text-success">'.$Currency_symbol.' '.$result_of_this_month.' <i class="mdi mdi-trending-up mr-1"></i></span> From This Month</p>';
                                             }
 
                                             echo $echo_result_of_this_month;
@@ -618,7 +618,7 @@ function transferLimit()
                                                     <div class="input-group">
                                                         <input type="text" name="txt_amount" class="form-control" placeholder="10,000" aria-label="Recipient 's username"           aria-describedby="basic-addon2" required>
                                                         <div class="input-group-append">
-                                                            <span class="input-group-text" id="basic-addon2">&#x20b9;</span>
+                                                            <span class="input-group-text" id="basic-addon2"><?php echo $Currency_symbol; ?></span>
                                                         </div>
                                                     </div>
                                                 </div>

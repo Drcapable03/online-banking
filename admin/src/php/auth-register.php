@@ -1,4 +1,14 @@
-<?php require_once __DIR__ . '/../../includes/config.php'; ?>
+<?php
+require_once __DIR__ . '/../../includes/config.php';
+require_once __DIR__ . '/../../includes/session.php';
+require_once __DIR__ . '/../../includes/csrf.php';
+start_secure_session();
+
+if (!$admin_registration_enabled) {
+    http_response_code(403);
+    exit('Admin registration is disabled.');
+}
+?>
 <script type="text/javascript">
   function displayAdminId(admin_id)
   {
@@ -64,7 +74,8 @@
         </div>
         <!-- end row -->
         <!-- action="auth-register.php?action=add" -->
-        <form name="add" id="add" method="get"  enctype="multipart/form-data">
+        <form name="add" id="add" method="post" enctype="multipart/form-data">
+            <?php echo csrf_field(); ?>
 <!-- 
         <form action=""> -->
           <div class="row justify-content-center">
@@ -193,50 +204,24 @@
 
   if(isset($_REQUEST['btnSubmit']))
   {
-    $full_name = $_REQUEST['txt_fullname'];
-    $mobile = $_REQUEST['txt_mobile'];
-    $email = $_REQUEST['txt_email'];
-    $password = $_REQUEST['txt_password'];
+    require_csrf();
 
-    $password = hash_password($password);
+    $full_name = trim($_REQUEST['txt_fullname']);
+    $mobile = trim($_REQUEST['txt_mobile']);
+    $email = trim($_REQUEST['txt_email']);
+    $password = hash_password($_REQUEST['txt_password']);
+
     $stmt = $con->prepare('INSERT INTO tbl_admin (full_name, mobile, email, password) VALUES (?, ?, ?, ?)');
     $stmt->bind_param('ssss', $full_name, $mobile, $email, $password);
     $result = $stmt->execute();
+    $admin_id = (int) $con->insert_id;
     $stmt->close();
 
-     
-     
-    if($result)
-    {
-      $query = "SELECT admin_id FROM tbl_admin WHERE mobile='$mobile'";
-      $result = mysqli_query($con, $query) or die('SQL Error :: '.mysqli_error());
-      $row = mysqli_fetch_assoc($result);
-      $admin_id = $row['admin_id'];
-
-
-      if ($result)
-      {
-        session_start();
-        $_SESSION['Admin_id'] = $admin_id;
-        echo '<script type="text/JavaScript">  
-        displayAdminId("'.$admin_id.'");
-       </script>' 
-        ;
-        
-
-      }
-      else
-      {
-        print($result);
-
-        echo "ERROR: Could not able to execute $query. " . mysqli_error($con);
-      }
-    } 
-    else
-    {
-      echo "ERROR: Could not able to execute $query. " . mysqli_error($con);
+    if ($result) {
+        echo '<script type="text/JavaScript">displayAdminId("' . $admin_id . '");</script>';
+    } else {
+        echo '<script type="text/JavaScript">alert("Registration failed. Please try again.");</script>';
     }
-    
 }
 
 ?>

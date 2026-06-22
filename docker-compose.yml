@@ -14,6 +14,7 @@ services:
       - ./bank_db.sql:/docker-entrypoint-initdb.d/01-bank_db.sql:ro
       - ./docker/mysql/init/02-password-upgrade.sql:/docker-entrypoint-initdb.d/02-password-upgrade.sql:ro
       - ./docker/mysql/init/03-profile-fields.sql:/docker-entrypoint-initdb.d/03-profile-fields.sql:ro
+      - ./docker/mysql/init/04-currency-ssn.sql:/docker-entrypoint-initdb.d/04-currency-ssn.sql:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
@@ -32,6 +33,11 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-bank_pass}
       DB_NAME: ${DB_NAME:-bank_db}
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080/online-banking}
+      APP_ENV: ${APP_ENV:-development}
+      APP_PRIMARY_CURRENCY: ${APP_PRIMARY_CURRENCY:-USD}
+      SSN_ENCRYPTION_KEY: ${SSN_ENCRYPTION_KEY:-}
+      ADMIN_REGISTRATION_ENABLED: ${ADMIN_REGISTRATION_ENABLED:-false}
+      ADMIN_POOL_ACCOUNT: ${ADMIN_POOL_ACCOUNT:-338509629}
     volumes:
       - .:/var/www/html/online-banking
     depends_on:

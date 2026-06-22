@@ -2,6 +2,7 @@
     include('connect.php');
     require_once __DIR__ . '/../../includes/customer_guard.php';
     require_once __DIR__ . '/../../includes/uploads.php';
+    require_once __DIR__ . '/../../includes/encryption.php';
 
     $query_customer = "SELECT * FROM tbl_customer WHERE account_no='$Account_no'";
     $result_customer = mysqli_query($con, $query_customer);
@@ -956,7 +957,7 @@
             }
             if ($ssn_update) {
                 $customer_sql .= ", ssn=?";
-                $params[] = $ssn_update;
+                $params[] = encrypt_ssn($ssn_update);
                 $types .= 's';
             }
             $customer_sql .= " WHERE account_no=?";

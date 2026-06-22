@@ -1,7 +1,11 @@
 <?php
     include('connect.php');
     require_once __DIR__ . '/../../includes/admin_guard.php';
+    require_once __DIR__ . '/../../includes/currency.php';
+    require_once __DIR__ . '/../../includes/transfers.php';
     $Admin_id = $_SESSION['s_admin_id'];
+    $balance_op_error = null;
+    $balance_op_success = false;
         // For Getting Admin Details
         $query_admin = "SELECT * FROM tbl_admin WHERE admin_id=$Admin_id";
         $result_admin = mysqli_query($con, $query_admin);
@@ -33,184 +37,30 @@
         $array_total_bank_balance = mysqli_fetch_assoc($result_total_bank_balance); # $no_of_transaction
         $total_bank_balance = $array_total_bank_balance['bank_balance'];
 
-        // Start manage balance
-        
-        if(isset($_GET['operationType']))
-        {
-            $manage_account_no = intval($_GET['account_id']);
-            $manage_amount = intval($_GET['amount']);
-            $manage_oprationType = $_GET['operationType'];
-            // Opeartion Credit
-            if($manage_oprationType == "credit")
-            {
-                
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['balance_operation'])) {
+            require_csrf();
+            $manage_account_no = (int) ($_POST['account_id'] ?? 0);
+            $manage_amount = (int) ($_POST['amount'] ?? 0);
+            $manage_operation = $_POST['balance_operation'] ?? '';
 
-
-
-                $Account_no = 338509629;
-                        $query_for_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$Account_no";
-                $result = mysqli_query($con, $query_for_Account_bal) or die('SQL Error :: '.mysqli_error());
-                $row = mysqli_fetch_assoc($result);
-
-                $Acount_bal = $row['balance'];
-                $Amount = $manage_amount;
-                $To_account = $manage_account_no;
-
-
-                // if Account_bal is not Sufficient then Run This block Of code That disply You have not Sufficient bal or ben_account_no == logged_in usee then        Display You can not set    Your Account Number
-                // else Run  Below Code
-                if ($Amount > $Acount_bal)
-                {
-                    echo "You Have Not Sufficient Balance To Transfer";
-                }
-                else
-                {
-                
-                    // 1. Reduce amount in Admin in customer
-                    $Acount_bal = $Acount_bal - $Amount;
-                    $query_for_update_from_Account_bal = "UPDATE tbl_balance SET balance=$Acount_bal WHERE account_no=$Account_no";
-                    $result = mysqli_query($con, $query_for_update_from_Account_bal) or die('SQL Error ::   '.mysqli_error());
-                
-                
-                
-                    // 2. add amount in to_account customer
-                    $To_account = $manage_account_no;
-                    $query_for_Ben_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$To_account";
-                    $result = mysqli_query($con, $query_for_Ben_Account_bal) or die('SQL Error :: '.mysqli_error());
-                    $row = mysqli_fetch_assoc($result);
-                    $Acount_bal = $row['balance'];
-                
-                    $Account_bal = $Acount_bal + $Amount;
-                    $query_for_update_Ben_Account_bal = "UPDATE tbl_balance SET balance=$Account_bal WHERE  account_no=$To_account";
-                    $result = mysqli_query($con, $query_for_update_Ben_Account_bal) or die('SQL Error ::    '.mysqli_error());
-                
-                
-                
-                    $Trans_date = date("Y-m-d H:i:s");
-                    $Trans_type = "DEBIT";
-                    $Purpose = "Operation made by Admin";
-                    $To_account = $manage_account_no;
-                
-                    // $query_for_Account_no = "SELECT account_no FROM tbl_customer WHERE username='$Username'";
-                    // $result = mysqli_query($con, $query_for_Account_no) or die('SQL Error :: '.mysqli_error());
-                    // $row = mysqli_fetch_assoc($result);
-                    // $Account_no = $row['account_no'];
-                
-                    $query_for_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$Account_no";
-                    $result = mysqli_query($con, $query_for_Account_bal) or die('SQL Error :: '.mysqli_error());
-                    $row = mysqli_fetch_assoc($result);
-                    $Acount_bal = $row['balance'];
-                
-                    // 3. insert transaction debit record for logged_in user in tbl_transaction
-                    $query_debit_record = "INSERT INTO tbl_transaction (trans_date,amount,trans_type,purpose,   to_account,account_no,account_bal) 
-                    VALUES ('$Trans_date', $Amount, '$Trans_type', '$Purpose', $To_account, $Account_no,    $Acount_bal)";
-                    $result = mysqli_query($con, $query_debit_record) or die('SQL Error :: '.mysqli_error());
-                
-                
-                    $Trans_type = "CREDIT";
-                    $query_for_Ben_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$To_account";
-                    $result = mysqli_query($con, $query_for_Ben_Account_bal) or die('SQL Error :: '.mysqli_error());
-                    $row = mysqli_fetch_assoc($result);
-                    $Acount_bal = $row['balance'];
-                
-                    // 4. insert transaction credit record for to_account user in tbl_transaction
-                    $query_credit_record = "INSERT INTO tbl_transaction (trans_date,amount,trans_type,purpose,  to_account,account_no,account_bal) 
-                    VALUES ('$Trans_date', $Amount, '$Trans_type', '$Purpose', $Account_no, $To_account,    $Acount_bal)";
-                    $result = mysqli_query($con, $query_credit_record) or die('SQL Error :: '.mysqli_error());
-                
-                
-                    if ($result)
-                    {
-                      echo '<script type="text/JavaScript">  
-                      sweetAlertSuccess();
-                     </script>' 
-                      ;
-                    }
-                }
-            
-            }
-        
-        if($manage_oprationType == "debit")
-        {
-            $Account_no = $manage_account_no;
-            $query_for_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$Account_no";
-            $result = mysqli_query($con, $query_for_Account_bal) or die('SQL Error :: '.mysqli_error());
-            $row = mysqli_fetch_assoc($result);
-            $Acount_bal = $row['balance'];
-            $Amount = $manage_amount;
-            $To_account = 338509629;
-            // if Account_bal is not Sufficient then Run This block Of code That disply You have not Sufficient bal or ben_account_no == logged_inusee then        Display You can not set    Your Account Number
-            // else Run  Below Code
-            if ($Amount > $Acount_bal)
-            {
-                echo '<script type="text/JavaScript">  
-              notEnoughBal();
-             </script>' 
-              ;
-            }
-            else
-            {
-            
-                // 1. Reduce amount in Customer Account
-                $Acount_bal = $Acount_bal - $Amount;
-                $query_for_update_from_Account_bal = "UPDATE tbl_balance SET balance=$Acount_bal WHERE account_no=$Account_no";
-                $result = mysqli_query($con, $query_for_update_from_Account_bal) or die('SQL Error ::   '.mysqli_error());
-            
-            
-            
-                // 2. add amount in Admin account
-                $query_for_Ben_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$To_account";
-                $result = mysqli_query($con, $query_for_Ben_Account_bal) or die('SQL Error :: '.mysqli_error());
-                $row = mysqli_fetch_assoc($result);
-                $Acount_bal = $row['balance'];
-            
-                $Account_bal = $Acount_bal + $Amount;
-                $query_for_update_Ben_Account_bal = "UPDATE tbl_balance SET balance=$Account_bal WHERE  account_no=$To_account";
-                $result = mysqli_query($con, $query_for_update_Ben_Account_bal) or die('SQL Error ::    '.mysqli_error());
-            
-            
-            
-                $Trans_date = date("Y-m-d H:i:s");
-                $Trans_type = "DEBIT";
-                $Purpose = "Operation made by Admin";
-            
-                // $query_for_Account_no = "SELECT account_no FROM tbl_customer WHERE username='$Username'";
-                // $result = mysqli_query($con, $query_for_Account_no) or die('SQL Error :: '.mysqli_error());
-                // $row = mysqli_fetch_assoc($result);
-                // $Account_no = $row['account_no'];
-            
-                $query_for_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$Account_no";
-                $result = mysqli_query($con, $query_for_Account_bal) or die('SQL Error :: '.mysqli_error());
-                $row = mysqli_fetch_assoc($result);
-                $Acount_bal = $row['balance'];
-            
-                // 3. insert transaction debit record for logged_in user in tbl_transaction
-                $query_debit_record = "INSERT INTO tbl_transaction (trans_date,amount,trans_type,purpose,   to_account,account_no,account_bal) 
-                VALUES ('$Trans_date', $Amount, '$Trans_type', '$Purpose', $To_account, $Account_no,    $Acount_bal)";
-                $result = mysqli_query($con, $query_debit_record) or die('SQL Error :: '.mysqli_error());
-            
-            
-                $Trans_type = "CREDIT";
-                $query_for_Ben_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$To_account";
-                $result = mysqli_query($con, $query_for_Ben_Account_bal) or die('SQL Error :: '.mysqli_error());
-                $row = mysqli_fetch_assoc($result);
-                $Acount_bal = $row['balance'];
-            
-                // 4. insert transaction credit record for to_account user in tbl_transaction
-                $query_credit_record = "INSERT INTO tbl_transaction (trans_date,amount,trans_type,purpose,  to_account,account_no,account_bal) 
-                VALUES ('$Trans_date', $Amount, '$Trans_type', '$Purpose', $Account_no, $To_account,    $Acount_bal)";
-                $result = mysqli_query($con, $query_credit_record) or die('SQL Error :: '.mysqli_error());
-            
-            
-                if ($result)
-                {
-                  echo '<script type="text/JavaScript">  
-                  sweetAlertSuccess();
-                 </script>' 
-                  ;
+            if (!in_array($manage_operation, ['credit', 'debit'], true)) {
+                $balance_op_error = 'invalid_operation';
+            } elseif ($manage_account_no === $admin_pool_account) {
+                $balance_op_error = 'invalid_account';
+            } else {
+                $result = execute_admin_balance_op(
+                    $con,
+                    $admin_pool_account,
+                    $manage_account_no,
+                    $manage_amount,
+                    $manage_operation
+                );
+                if ($result['success']) {
+                    $balance_op_success = true;
+                } else {
+                    $balance_op_error = $result['error'];
                 }
             }
-        }
         }
 
 
@@ -218,58 +68,38 @@
 
 
 <script type="text/javascript">
+  function submitBalanceOp(account_no, amount, operationType) {
+    var form = document.getElementById('balanceOpForm');
+    form.querySelector('[name="balance_operation"]').value = operationType;
+    form.querySelector('[name="account_id"]').value = account_no;
+    form.querySelector('[name="amount"]').value = amount;
+    form.submit();
+  }
+
   function alertifyPromptAdd(account_no)
   {
-    function changeUrl(amount,operationType)
-    {
-        var url = new URL(window.location.href);
-        var query_string = window.location.href;
-        var search_params = new URLSearchParams(); 
-        search_params.append('operationType',operationType);
-        search_params.append('account_id', account_no);
-        search_params.append('amount',amount);
-        url.search = search_params.toString();
-        var new_url = url.toString();
-        window.location.href = new_url;
-    };
-    var amount = 0
     alertify.prompt(
         "Add Money",
         "1000",
         function(e, r) {
             alertify.success("Added : " + r);
-            changeUrl(r,"credit");
+            submitBalanceOp(account_no, r, "credit");
         },
         
         function() {
           alertify.error("Cancel");
         },
       );
-      
-      
   }
 
   function alertifyPromptReduce(account_no)
   {
-    function changeUrl(amount,operationType)
-    {
-        var url = new URL(window.location.href);
-        var query_string = window.location.href;
-        var search_params = new URLSearchParams(); 
-        search_params.append('operationType',operationType);
-        search_params.append('account_id', account_no);
-        search_params.append('amount',amount);
-        url.search = search_params.toString();
-        var new_url = url.toString();
-        window.location.href = new_url;
-    };
     alertify.prompt(
         "Reduce Money",
         "1000",
         function(e, r) {
           alertify.success("Reduced : " + r);
-          changeUrl(r,"debit");
-
+          submitBalanceOp(account_no, r, "debit");
         },
         function() {
           alertify.error("Cancel");
@@ -712,7 +542,7 @@
                                                 </span>
                                             </div>
                                         </div>
-                                        <h4 class="m-0 align-self-center"><?php echo $total_bank_balance ?></h4>
+                                        <h4 class="m-0 align-self-center"><?php echo format_money($total_bank_balance); ?></h4>
                                     </div>
                                 </div>
                             </div>
@@ -760,7 +590,10 @@
                                                         $query_for_account_type = "SELECT account_type FROM tbl_account_type WHERE account_no=$account_no";
                                                         $result_account_type = mysqli_query($con, $query_for_account_type);
                                                         $account_type = mysqli_fetch_array($result_account_type)[0];
-                                                        if ($account_no == 338509629)
+                                                        $customer_currency = $row['primary_currency'] ?? system_primary_currency();
+                                                        $balance_display = format_money($account_bal, $customer_currency);
+
+                                                        if ($account_no == $admin_pool_account)
                                                         {
                                                             $AddReduceBtn = '';
                                                         }
@@ -785,7 +618,7 @@
                                                             </td>
                                                             <td>'.$row["gender"].'<br></td>
                                                             <td> '.$account_type.'</td>
-                                                            <td>&#x20b9; '.$account_bal.'<br></td>
+                                                            <td>'.$balance_display.'<br></td>
                                                             <td></td>
                                                             <td>
                                                             '.$AddReduceBtn.'
@@ -1283,6 +1116,21 @@
         <script src="assets/js/pages/sweet-alerts.init.js"></script>
 
         <script src="assets/js/app.js"></script>
+
+        <form id="balanceOpForm" method="post" style="display:none;">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="balance_operation" value="">
+            <input type="hidden" name="account_id" value="">
+            <input type="hidden" name="amount" value="">
+        </form>
+
+        <?php if ($balance_op_success): ?>
+        <script type="text/javascript">sweetAlertSuccess();</script>
+        <?php elseif ($balance_op_error === 'insufficient_balance'): ?>
+        <script type="text/javascript">notEnoughBal();</script>
+        <?php elseif ($balance_op_error): ?>
+        <script type="text/javascript">alertify.error("Operation failed. Please try again.");</script>
+        <?php endif; ?>
 
     </body>
 </html>

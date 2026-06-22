@@ -134,8 +134,9 @@ CREATE TABLE `tbl_customer` (
   `mobile` char(15) NOT NULL,
   `email` char(100) NOT NULL,
   `profile_photo` varchar(255) DEFAULT NULL,
-  `ssn` varchar(20) DEFAULT NULL,
-  `signature` varchar(255) DEFAULT NULL
+  `ssn` varchar(255) DEFAULT NULL,
+  `signature` varchar(255) DEFAULT NULL,
+  `primary_currency` char(3) NOT NULL DEFAULT 'USD'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --

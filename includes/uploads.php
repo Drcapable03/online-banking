@@ -59,7 +59,13 @@ function mask_ssn(?string $ssn): string
     if (empty($ssn)) {
         return 'Not on file';
     }
-    $digits = preg_replace('/\D/', '', $ssn);
+
+    if (!function_exists('decrypt_ssn')) {
+        require_once __DIR__ . '/encryption.php';
+    }
+
+    $plaintext = decrypt_ssn($ssn) ?? $ssn;
+    $digits = preg_replace('/\D/', '', $plaintext);
     if (strlen($digits) < 4) {
         return '***-**-****';
     }

@@ -130,7 +130,7 @@ $home_url = app_url('admin/dist/index.php');
                           </div>
                           <div class="col-md-6">
                             <div class="text-md-right mt-3 mt-md-0">
-                              <a href="auth-recoverpw.html" class="text-muted"
+                              <a href="auth_recoverpw.php" class="text-muted"
                                 ><i class="mdi mdi-lock"></i> Forgot your
                                 password?</a
                               >
@@ -186,8 +186,18 @@ $home_url = app_url('admin/dist/index.php');
   if(isset($_REQUEST['btn_submit']))
   {
     require_csrf();
+    require_once __DIR__ . '/../../includes/rate_limit.php';
+
     $Admin_id = (int) $_REQUEST["txt_adminid"];
     $Password = $_REQUEST["txt_password"];
+    $rate_key = (string) $Admin_id;
+
+    $wait = check_login_rate_limit('admin', $rate_key);
+    if ($wait !== null) {
+        echo '<script type="text/JavaScript">Swal.fire({title:"Too many attempts",text:"Please wait ' . (int) $wait . ' seconds before trying again.",icon:"warning"});</script>';
+        exit;
+    }
+
     $stmt = $con->prepare('SELECT admin_id, password FROM tbl_admin WHERE admin_id = ?');
     $stmt->bind_param('i', $Admin_id);
     $stmt->execute();
@@ -200,6 +210,7 @@ $home_url = app_url('admin/dist/index.php');
         if (!password_get_info($row['password'])['algo']) {
           upgrade_admin_password($con, $Admin_id, $Password);
         }
+        clear_login_failures('admin', $rate_key);
         regenerate_session();
         $_SESSION['s_admin_id'] = $Admin_id;
         header("location:" . app_url('admin/dist/index.php'));
@@ -207,11 +218,13 @@ $home_url = app_url('admin/dist/index.php');
       }
       else
       {
+        record_login_failure('admin', $rate_key);
         echo '<script type="text/JavaScript">wrongAuth();</script>';
       }
     }
     else
     {
+      record_login_failure('admin', $rate_key);
       echo '<script type="text/JavaScript">wrongAuth();</script>';
     }
     $stmt->close();

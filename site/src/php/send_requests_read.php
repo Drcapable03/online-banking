@@ -831,101 +831,17 @@
 <?php
     if(isset($_REQUEST['btn_send_money']))
     {
-        $request_id = intval($_GET['request_id']);
-        $request_details = mysqli_query($con,"SELECT * FROM tbl_requests WHERE request_id=$request_id");
-        $row_request = mysqli_fetch_array($request_details);
-        $sender_account_no = $row_request['account_no'];
+        require_csrf();
+        require_once __DIR__ . '/../../includes/transfers.php';
+        $request_id = (int) ($_POST['request_id'] ?? $_GET['request_id'] ?? 0);
+        $result = fulfill_money_request($con, $Account_no, $request_id);
 
-        $query_for_sender_details = "SELECT * FROM tbl_customer WHERE account_no = $sender_account_no";
-        $result_sender_details = mysqli_query($con,$query_for_sender_details);
-        $row_sender = mysqli_fetch_array($result_sender_details);
-
-        // Check if Balance is Sufficient or not
-        $query_for_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$Account_no";
-        $result = mysqli_query($con, $query_for_Account_bal) or die('SQL Error :: '.mysqli_error());
-        $row = mysqli_fetch_assoc($result);
-
-        $Acount_bal = $row['balance'];
-        $Amount = $row_request['amount'];
-        $To_account = $row_sender['account_no'];
-
-
-        if ($Amount > $Acount_bal)
-        {
-            echo "You Have Not Sufficient Balance To Transfer";
-        }
-        else
-        {
-            // 1. Reduce amount in login in customer
-            $Acount_bal = $Acount_bal - $Amount;
-            $query_for_update_from_Account_bal = "UPDATE tbl_balance SET balance=$Acount_bal WHERE  account_no=$Account_no";
-            $result = mysqli_query($con, $query_for_update_from_Account_bal) or die('SQL Error ::   '.mysqli_error());
-
-
-
-            // 2. add amount in to_account customer
-            $query_for_Ben_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$To_account";
-            $result = mysqli_query($con, $query_for_Ben_Account_bal) or die('SQL Error :: '.mysqli_error());
-            $row = mysqli_fetch_assoc($result);
-            $Acount_bal = $row['balance'];
-            $Amount = $Amount;
-
-            $Account_bal = $Acount_bal + $Amount;
-            $query_for_update_Ben_Account_bal = "UPDATE tbl_balance SET balance=$Account_bal WHERE  account_no=$To_account";
-            $result = mysqli_query($con, $query_for_update_Ben_Account_bal) or die('SQL Error ::    '.mysqli_error());
-
-
-
-            $Trans_date = date("Y-m-d H:i:s");
-            $Amount = $Amount;
-            $Trans_type = "DEBIT";
-            $Purpose = "From Reqeusts";
-            $To_account = $sender_account_no;
-
-            // $query_for_Account_no = "SELECT account_no FROM tbl_customer WHERE username='$Username'";
-            // $result = mysqli_query($con, $query_for_Account_no) or die('SQL Error :: '.mysqli_error());
-            // $row = mysqli_fetch_assoc($result);
-            // $Account_no = $row['account_no'];
-
-            $query_for_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$Account_no";
-            $result = mysqli_query($con, $query_for_Account_bal) or die('SQL Error :: '.mysqli_error());
-            $row = mysqli_fetch_assoc($result);
-            $Acount_bal = $row['balance'];
-
-            // 3. insert transaction debit record for logged_in user in tbl_transaction
-            $query_debit_record = "INSERT INTO tbl_transaction (trans_date,amount,trans_type,purpose,   to_account,account_no,account_bal) 
-            VALUES ('$Trans_date', $Amount, '$Trans_type', '$Purpose', $To_account, $Account_no,    $Acount_bal)";
-            $result = mysqli_query($con, $query_debit_record) or die('SQL Error :: '.mysqli_error());
-
-
-            $Trans_type = "CREDIT";
-            $query_for_Ben_Account_bal = "SELECT balance FROM tbl_balance WHERE account_no=$To_account";
-            $result = mysqli_query($con, $query_for_Ben_Account_bal) or die('SQL Error :: '.mysqli_error());
-            $row = mysqli_fetch_assoc($result);
-            $Acount_bal = $row['balance'];
-
-            // 4. insert transaction credit record for to_account user in tbl_transaction
-            $query_credit_record = "INSERT INTO tbl_transaction (trans_date,amount,trans_type,purpose,  to_account,account_no,account_bal) 
-            VALUES ('$Trans_date', $Amount, '$Trans_type', '$Purpose', $Account_no, $To_account,    $Acount_bal)";
-            $result = mysqli_query($con, $query_credit_record) or die('SQL Error :: '.mysqli_error());
-
-
-            if ($result)
-            {
-                // Set Status to Sent
-                $query_for_update_status = "UPDATE tbl_requests SET status = 'sent' WHERE request_id=$request_id";
-                $result_of_update = mysqli_query($con, $query_for_update_status) or die('SQL Error :: '.mysqli_error());
-                echo '<script type="text/JavaScript">  
-                sweetAlertSuccess();
-                </script>' 
-                ;
-            }
-            else
-            {
-              print($result);
-            
-              echo "ERROR: Could not able to execute $query. " . mysqli_error($con);
-            }
+        if ($result['success']) {
+            echo '<script type="text/JavaScript">sweetAlertSuccess();</script>';
+        } elseif ($result['error'] === 'insufficient_balance') {
+            echo '<script type="text/JavaScript">alert("You do not have sufficient balance for this transfer.");</script>';
+        } else {
+            echo '<script type="text/JavaScript">alert("Transfer failed. Please try again.");</script>';
         }
     }
 ?>

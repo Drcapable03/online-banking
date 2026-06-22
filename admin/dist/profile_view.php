@@ -15,7 +15,9 @@
 <?php
     include('connect.php');
     require_once __DIR__ . '/../../includes/admin_guard.php';
+    require_once __DIR__ . '/../../includes/currency.php';
     $Admin_id = $_SESSION['s_admin_id'];
+    $currency_update_success = false;
         // For Getting Admin Details
         $query_admin = "SELECT * FROM tbl_admin WHERE admin_id=$Admin_id";
         $result_admin = mysqli_query($con, $query_admin);
@@ -47,10 +49,26 @@
             $query_for_get_username = "SELECT username FROM tbl_account WHERE account_no = $Account_no";
             $result_username = mysqli_query($con, $query_for_get_username);
             $acc_username = mysqli_fetch_array($result_username)[0];
+            $customer_currency = $row_customer['primary_currency'] ?? system_primary_currency();
         }
         else
         {
             // header('location: index.php');
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['btn_save_currency']) && isset($_GET['account_no'])) {
+            require_csrf();
+            $Account_no = (int) $_GET['account_no'];
+            $new_currency = strtoupper(trim($_POST['primary_currency'] ?? ''));
+
+            if (validate_currency_code($new_currency)) {
+                $currency_stmt = $con->prepare('UPDATE tbl_customer SET primary_currency = ? WHERE account_no = ?');
+                $currency_stmt->bind_param('si', $new_currency, $Account_no);
+                $currency_stmt->execute();
+                $currency_stmt->close();
+                $customer_currency = $new_currency;
+                $currency_update_success = true;
+            }
         }
 
 ?>
@@ -424,6 +442,7 @@
                                       
                                         
                                         <form class="needs-validation" novalidate method="post">
+                                        <?php echo csrf_field(); ?>
                                         <div class="row col-md-6 mb-3 mt-3">
                                             <h5>Account Number : <?php echo $Account_no; ?></h5>
                                         </div>
@@ -500,9 +519,16 @@
                                                 </div>
                                             </div>
                                               <div class="row">
-                                                
-
-
+                                                <div class="col-md-4 mb-3">
+                                                  <label>Primary Currency</label>
+                                                  <select name="primary_currency" class="form-control" required>
+                                                    <?php foreach (supported_currency_options() as $code => $symbol): ?>
+                                                    <option value="<?php echo $code; ?>" <?php echo ($customer_currency ?? system_primary_currency()) === $code ? 'selected' : ''; ?>>
+                                                        <?php echo $code . ' (' . $symbol . ')'; ?>
+                                                    </option>
+                                                    <?php endforeach; ?>
+                                                  </select>
+                                                </div>
 
                                                 <div class="col-md-4 mb-3">
                                                   <label>Username</label>
@@ -532,7 +558,8 @@
                                             
                                             <!-- <button class="btn btn-primary" type="submit" name="btn_update" type="submit">Update</button>
                                             <a href="index.php"><button class="btn btn-danger" type="button" name="btn_cancel">Cancel</button></a> -->
-                                            <a href="index.php"><button class="btn btn-primary" type="button" name="btn_cancel" >OK</button></a>
+                                            <button class="btn btn-success" type="submit" name="btn_save_currency">Save Currency</button>
+                                            <a href="index.php"><button class="btn btn-primary" type="button" name="btn_cancel">Back</button></a>
 
 
                                             
@@ -910,34 +937,7 @@
     </body>
 </html>
 <?php
-    if(isset($_REQUEST['btn_update']))
-    {
-        $Account_no = $_GET['account_no'];
-        $first_name = $_REQUEST['txt_fname'];
-        $last_name = $_REQUEST['txt_lname'];
-        $full_name = $first_name . " " . $last_name;
-        $mobile = $_REQUEST['txt_mobile'];
-        $email = $_REQUEST['txt_email'];
-        $address = $_REQUEST['txt_address'];
-        $city = $_REQUEST['txt_city'];
-        $state = $_REQUEST['txt_state'];
-        $zip = $_REQUEST['txt_zip'];
-        $password = $_REQUEST['txt_password'];
-        // Update tbl_customer
-        $query_for_update_tbl_customer = "UPDATE tbl_customer SET full_name='$full_name', mobile='$mobile', email='$email' WHERE account_no= $Account_no";
-        $result_tbl_customer = mysqli_query($con,$query_for_update_tbl_customer) or die('SQL Error :: '.mysqli_error($con));
-        // Update tbl_address
-        $query_for_update_tbl_address = "UPDATE tbl_address SET home_address= '$address', city='$city', state= '$state', pincode=$zip  WHERE account_no= $Account_no";
-        $result_tbl_address = mysqli_query($con,$query_for_update_tbl_address) or die('SQL Error :: '.mysqli_error($con));
-        // update_tbl_account
-        $query_for_update_tbl_account = "UPDATE tbl_account SET password='$password' WHERE account_no= $Account_no";
-        $result_tbl_account = mysqli_query($con,$query_for_update_tbl_account)  or die('SQL Error :: '.mysqli_error($con));
-
-        echo '<script type="text/JavaScript">  
-              sweetAlertSuccess();
-             </script>' 
-              ;
+    if ($currency_update_success) {
+        echo '<script type="text/JavaScript">sweetAlertSuccess();</script>';
     }
-
-
 ?>

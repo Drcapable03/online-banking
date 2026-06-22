@@ -138,7 +138,7 @@ $home_url = app_url('site/dist/index.php');
                           </div>
                           <div class="col-md-6">
                             <div class="text-md-right mt-3 mt-md-0">
-                              <a href="auth-recoverpw.html" class="text-muted"
+                              <a href="auth_recoverpw.php" class="text-muted"
                                 ><i class="mdi mdi-lock"></i> Forgot your
                                 password?</a
                               >
@@ -192,8 +192,17 @@ $home_url = app_url('site/dist/index.php');
   if(isset($_REQUEST['btn_submit']))
   { 
     require_csrf();
+    require_once __DIR__ . '/../../includes/rate_limit.php';
+
     $username = trim($_REQUEST["txt_username"]);
     $password = $_REQUEST["txt_password"];
+
+    $wait = check_login_rate_limit('customer', $username);
+    if ($wait !== null) {
+        echo '<script type="text/JavaScript">Swal.fire({title:"Too many attempts",text:"Please wait ' . (int) $wait . ' seconds before trying again.",icon:"warning"});</script>';
+        exit;
+    }
+
     $stmt = $con->prepare('SELECT account_no, password FROM tbl_account WHERE username = ?');
     $stmt->bind_param('s', $username);
     $stmt->execute();
@@ -215,15 +224,18 @@ $home_url = app_url('site/dist/index.php');
             $history_stmt->bind_param('is', $account_no, $Login_time);
             $history_stmt->execute();
             $history_stmt->close();
+            clear_login_failures('customer', $username);
             echo '<script type="text/JavaScript">rightAuth();</script>';
         }
         else
         {
+            record_login_failure('customer', $username);
             echo '<script type="text/JavaScript">wrongAuth();</script>';
         }
     }
     else
     {
+        record_login_failure('customer', $username);
         echo '<script type="text/JavaScript">wrongAuth();</script>';
     }
     $stmt->close();

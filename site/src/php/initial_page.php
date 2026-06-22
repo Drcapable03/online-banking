@@ -448,9 +448,9 @@
                                                 Authentication <div class="arrow-down"></div>
                                             </a>
                                             <div class="dropdown-menu" aria-labelledby="topnav-auth">
-                                                <a href="auth-login.html" class="dropdown-item">Login</a>
-                                                <a href="auth-register.html" class="dropdown-item">Register</a>
-                                                <a href="auth-recoverpw.html" class="dropdown-item">Recover Password</a>
+                                                <a href="auth_login.php" class="dropdown-item">Login</a>
+                                                <a href="auth_register.php" class="dropdown-item">Register</a>
+                                                <a href="auth_recoverpw.php" class="dropdown-item">Recover Password</a>
                                                 <a href="auth-lock-screen.html" class="dropdown-item">Lock Screen</a>
                                             </div>
                                         </div>
