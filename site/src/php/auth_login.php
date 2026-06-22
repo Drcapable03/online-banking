@@ -1,16 +1,19 @@
 <?php
 require_once __DIR__ . '/../../includes/config.php';
 include('connect.php');
-// if login session set then update logout_time record in tbl_login_history
-if(isset($_SESSION["s_login"]) && isset($_SESSION["s_account_no"]))
-{
-  $logout_time = date("Y-m-d H:i:s");
-  $query_for_update_logout = "UPDATE tbl_login_history SET logout_time = '$logout_time' WHERE token_id = (select max(token_id) from tbl_login_history)";
-  $result_for_update_logout = mysqli_query($con, $query_for_update_logout) or die('SQL Error :: '.mysqli_error($con));
+
+// Only clear session when showing the login form (GET).
+// Destroying on POST would invalidate the CSRF token from the form.
+if (!isset($_REQUEST['btn_submit'])) {
+  if (isset($_SESSION["s_login"]) && isset($_SESSION["s_account_no"])) {
+    $logout_time = date("Y-m-d H:i:s");
+    $query_for_update_logout = "UPDATE tbl_login_history SET logout_time = '$logout_time' WHERE token_id = (select max(token_id) from tbl_login_history)";
+    $result_for_update_logout = mysqli_query($con, $query_for_update_logout) or die('SQL Error :: '.mysqli_error($con));
+  }
+  session_unset();
+  session_destroy();
+  start_secure_session();
 }
-session_unset();
-session_destroy();
-start_secure_session();
 
 $home_url = app_url('site/dist/index.php');
 ?>

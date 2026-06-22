@@ -1,9 +1,14 @@
 <?php
 require_once __DIR__ . '/../../includes/config.php';
 include('connect.php');
-session_unset();
-session_destroy();
-start_secure_session();
+
+// Only clear session when showing the login form (GET).
+// Destroying on POST would invalidate the CSRF token from the form.
+if (!isset($_REQUEST['btn_submit'])) {
+  session_unset();
+  session_destroy();
+  start_secure_session();
+}
 
 $home_url = app_url('admin/dist/index.php');
 ?>
